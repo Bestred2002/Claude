@@ -13,8 +13,16 @@ const GIST_TOKEN_KEY = 'mytv.gistToken';
 const GIST_ID_KEY = 'mytv.gistId';
 const SYNC_TS_KEY = 'mytv.syncTs';
 
-// Lista predefinita: M3U pubblica con i canali italiani in chiaro (iptv-org)
-const DEFAULT_LIST_URL = 'https://iptv-org.github.io/iptv/countries/it.m3u';
+// Liste predefinite (in ordine di priorità per gli stream):
+//   1) Free-TV/IPTV — URL Mediaset/La7/Sky TG24/RaiNews24/TGCom24 in chiaro, niente DRM/geo-block
+//   2) iptv-org/iptv/countries/it.m3u — coda lunga di canali italiani regionali e tematici
+// Il merge sceglie sempre lo stream Free-TV quando esiste (è quello che funziona davvero).
+const DEFAULT_LIST_URLS = [
+  'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8',
+  'https://iptv-org.github.io/iptv/countries/it.m3u',
+];
+// Compat: prima versione caricava solo iptv-org
+const DEFAULT_LIST_URL = DEFAULT_LIST_URLS[1];
 
 const RADIO_STATIONS = window.RADIO_CATALOG || [];
 const TV_CATALOG = window.TV_CATALOG || [];
@@ -29,6 +37,8 @@ if (!localStorage.getItem('mytv.favsInit') && Array.isArray(window.DEFAULT_FAVS)
 function normName(s) {
   return (s || '')
     .toLowerCase()
+    // rimuovi simboli/emoji Unicode (es. "Ⓖ", "Ⓢ", "★")
+    .replace(/[①-⓿☀-➿⬀-⯿️]/g, '')
     // rimuovi suffissi di qualità/stato
     .replace(/\s*\(\s*\d{2,4}p\s*\)/gi, '')
     .replace(/\s*\[\s*(geo[\s-]?blocked|not\s*24\/7|geo\s*-?\s*blocked)\s*\]/gi, '')
@@ -108,9 +118,13 @@ function parseList(text) {
       if (line.startsWith('#EXTINF')) {
         const nameMatch = line.match(/,(.+)$/);
         const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+        const countryMatch = line.match(/tvg-country="([^"]+)"/);
+        const groupMatch = line.match(/group-title="([^"]+)"/);
         pending = {
           name: nameMatch ? nameMatch[1].trim() : 'Canale',
           logo: logoMatch ? logoMatch[1] : null,
+          country: countryMatch ? countryMatch[1] : null,
+          group: groupMatch ? groupMatch[1] : null,
         };
       } else if (line && !line.startsWith('#')) {
         if (pending) {
@@ -532,11 +546,55 @@ async function enterFullscreen() {
   } catch (e) {}
 }
 
+// Carica la lista predefinita combinando Free-TV (priorità sugli stream principali in chiaro)
+// e iptv-org (coda lunga). Free-TV vince in caso di match per gli stream.
+async function loadMergedDefaults() {
+  const fetched = await Promise.all(DEFAULT_LIST_URLS.map(async (url) => {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) return [];
+      const t = await r.text();
+      return parseList(t) || [];
+    } catch (e) { console.warn('Default list fail', url, e.message); return []; }
+  }));
+  const [freeTv, iptvOrg] = fetched;
+  // Free-TV è multi-paese: tieni solo Italia
+  const freeTvIt = freeTv.filter(c => {
+    const country = (c.country || '').toUpperCase();
+    const group = (c.group || '').toLowerCase();
+    return country === 'IT' || group === 'italy' || group === 'italia';
+  });
+  // Merge: parto da iptv-org, poi sovrascrivo con Free-TV (stream migliori)
+  const byKey = new Map();
+  for (const c of iptvOrg) byKey.set(normName(c.name), { ...c });
+  for (const c of freeTvIt) {
+    const k = normName(c.name);
+    const existing = byKey.get(k);
+    if (existing) {
+      // Stream Free-TV vince, logo del primo trovato (entrambi solitamente buoni)
+      byKey.set(k, { ...existing, stream: c.stream, name: existing.name, logo: existing.logo || c.logo });
+    } else {
+      // Canale presente solo in Free-TV (es. Sky TG24)
+      byKey.set(k, c);
+    }
+  }
+  const list = [...byKey.values()].filter(c => c.stream);
+  if (!list.length) throw new Error('Nessuna default list disponibile');
+  loadedChannels = list;
+  channels = mergeWithCatalog(list);
+  localStorage.setItem(STORAGE_KEY, 'merged:default-v2');
+  localStorage.setItem(CHANNELS_KEY, JSON.stringify(list));
+  render();
+}
+
 async function loadDefaultListIfNeeded() {
-  if (localStorage.getItem(STORAGE_KEY)) return;
-  if (localStorage.getItem('mytv.defaultTried')) return;
-  localStorage.setItem('mytv.defaultTried', '1');
-  try { await loadFromUrl(DEFAULT_LIST_URL); } catch (e) { console.warn('Lista default non caricata:', e.message); }
+  const stored = localStorage.getItem(STORAGE_KEY);
+  // Se l'utente ha caricato un URL custom proprio, non sovrascrivere
+  if (stored && !stored.startsWith('merged:') && stored !== DEFAULT_LIST_URL) return;
+  if (localStorage.getItem('mytv.defaultTried_v2')) return;
+  localStorage.setItem('mytv.defaultTried_v2', '1');
+  try { await loadMergedDefaults(); }
+  catch (e) { console.warn('Default merged fail:', e.message); try { await loadFromUrl(DEFAULT_LIST_URL); } catch {} }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -571,7 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#restoreDefaultBtn').addEventListener('click', async () => {
     $('#restoreDefaultBtn').textContent = 'Caricamento…';
-    try { await loadFromUrl(DEFAULT_LIST_URL); closeMenu(); scheduleSync(); }
+    try { await loadMergedDefaults(); closeMenu(); scheduleSync(); }
     catch (e) { alert('Errore: ' + e.message); }
     finally { $('#restoreDefaultBtn').textContent = 'Ripristina lista predefinita'; }
   });
@@ -580,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(CHANNELS_KEY);
     localStorage.removeItem('mytv.defaultTried');
+    localStorage.removeItem('mytv.defaultTried_v2');
     loadedChannels = [];
     channels = mergeWithCatalog([]);
     render();
