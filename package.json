@@ -1,0 +1,24 @@
+{
+  "name": "mytv",
+  "version": "0.1.0",
+  "description": "TV e Radio streaming — PWA + wrapper desktop per Mac/Win/Linux",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.mytv.app",
+    "productName": "myTV",
+    "files": ["index.html", "app.js", "catalog.js", "styles.css", "sw.js", "manifest.webmanifest", "icons/**", "electron/**"],
+    "mac": { "category": "public.app-category.entertainment", "target": ["dmg"] },
+    "win": { "target": ["nsis"] },
+    "linux": { "target": ["AppImage"] }
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
