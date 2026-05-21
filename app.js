@@ -7,6 +7,10 @@ const CHANNELS_KEY = 'mytv.channels';
 const FAV_KEY = 'mytv.favs';
 const TAB_KEY = 'mytv.tab';
 
+// Lista predefinita: M3U pubblica con i canali italiani in chiaro
+// (iptv-org, mantenuta dalla community su GitHub).
+const DEFAULT_LIST_URL = 'https://iptv-org.github.io/iptv/countries/it.m3u';
+
 const RADIO_STATIONS = window.RADIO_CATALOG || [];
 const TV_CATALOG = window.TV_CATALOG || [];
 
@@ -257,9 +261,21 @@ async function enterFullscreen() {
   } catch (e) {}
 }
 
+async function loadDefaultListIfNeeded() {
+  if (localStorage.getItem(STORAGE_KEY)) return;
+  if (localStorage.getItem('mytv.defaultTried')) return;
+  localStorage.setItem('mytv.defaultTried', '1');
+  try {
+    await loadFromUrl(DEFAULT_LIST_URL);
+  } catch (e) {
+    console.warn('Lista default non caricata:', e.message);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadCached();
   setTab(currentTab);
+  loadDefaultListIfNeeded();
 
   $('#addBtn').addEventListener('click', openModal);
   $('#cancelBtn').addEventListener('click', closeModal);
@@ -288,10 +304,23 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#closeMenuBtn').addEventListener('click', closeMenu);
   $('#sideMenu').addEventListener('click', (e) => { if (e.target.id === 'sideMenu') closeMenu(); });
 
+  $('#restoreDefaultBtn').addEventListener('click', async () => {
+    $('#restoreDefaultBtn').textContent = 'Caricamento…';
+    try {
+      await loadFromUrl(DEFAULT_LIST_URL);
+      closeMenu();
+    } catch (e) {
+      alert('Errore: ' + e.message);
+    } finally {
+      $('#restoreDefaultBtn').textContent = 'Ripristina lista predefinita';
+    }
+  });
+
   $('#clearListBtn').addEventListener('click', () => {
     if (!confirm('Rimuovere la lista caricata?')) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(CHANNELS_KEY);
+    localStorage.removeItem('mytv.defaultTried');
     loadedChannels = [];
     channels = mergeWithCatalog([]);
     render();
