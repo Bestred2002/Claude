@@ -594,8 +594,8 @@ async function loadDefaultListIfNeeded() {
   const stored = localStorage.getItem(STORAGE_KEY);
   // Se l'utente ha caricato un URL custom proprio, non sovrascrivere
   if (stored && !stored.startsWith('merged:') && stored !== DEFAULT_LIST_URL) return;
-  if (localStorage.getItem('mytv.defaultTried_v2')) return;
-  localStorage.setItem('mytv.defaultTried_v2', '1');
+  if (localStorage.getItem('mytv.defaultTried_v3')) return;
+  localStorage.setItem('mytv.defaultTried_v3', '1');
   try { await loadMergedDefaults(); }
   catch (e) { console.warn('Default merged fail:', e.message); try { await loadFromUrl(DEFAULT_LIST_URL); } catch {} }
 }
@@ -641,7 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(CHANNELS_KEY);
     localStorage.removeItem('mytv.defaultTried');
-    localStorage.removeItem('mytv.defaultTried_v2');
+    localStorage.removeItem('mytv.defaultTried_v3');
     loadedChannels = [];
     channels = mergeWithCatalog([]);
     render();
