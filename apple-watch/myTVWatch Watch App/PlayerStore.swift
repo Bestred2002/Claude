@@ -3,21 +3,50 @@ import AVFoundation
 import WatchKit
 import Combine
 
+@MainActor
 final class PlayerStore: ObservableObject {
     static let shared = PlayerStore()
 
     @Published var currentName: String? = nil
     @Published var isPlaying: Bool = false
-    @Published var tvChannels: [Station] = Catalog.defaultTV
+    @Published var tvChannels: [Station] = []
+    @Published var isRefreshing: Bool = false
 
     private var player: AVPlayer?
+    private let tvCacheKey = "mytv.tvChannels.v2"
 
     init() {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.allowAirPlay, .allowBluetoothA2DP])
         try? AVAudioSession.sharedInstance().setActive(true)
         loadTVCache()
+        Task { await refreshTVFromInternet() }
     }
 
+    // MARK: - Lista TV
+    func refreshTVFromInternet() async {
+        isRefreshing = true
+        let list = await Catalog.fetchTVChannels()
+        if !list.isEmpty {
+            tvChannels = list
+            persistTVCache(list)
+        }
+        isRefreshing = false
+    }
+
+    private func persistTVCache(_ list: [Station]) {
+        if let data = try? JSONEncoder().encode(list) {
+            UserDefaults.standard.set(data, forKey: tvCacheKey)
+        }
+    }
+
+    private func loadTVCache() {
+        if let data = UserDefaults.standard.data(forKey: tvCacheKey),
+           let list = try? JSONDecoder().decode([Station].self, from: data) {
+            tvChannels = list
+        }
+    }
+
+    // MARK: - Playback
     func play(_ s: Station) {
         guard s.hasStream, let url = URL(string: s.streamURL) else { return }
         let item = AVPlayerItem(url: url)
@@ -38,21 +67,5 @@ final class PlayerStore: ObservableObject {
         player = nil
         isPlaying = false
         currentName = nil
-    }
-
-    // I canali TV provengono dalla lista caricata sull'iPhone tramite
-    // WatchConnectivity (vedi WatchSession).
-    func updateTVChannels(_ list: [Station]) {
-        tvChannels = list
-        if let data = try? JSONEncoder().encode(list) {
-            UserDefaults.standard.set(data, forKey: "mytv.tvChannels")
-        }
-    }
-
-    private func loadTVCache() {
-        if let data = UserDefaults.standard.data(forKey: "mytv.tvChannels"),
-           let list = try? JSONDecoder().decode([Station].self, from: data) {
-            tvChannels = list
-        }
     }
 }
