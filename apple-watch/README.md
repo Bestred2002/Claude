@@ -1,48 +1,87 @@
 # myTV per Apple Watch (Ultra)
 
-App nativa watchOS in SwiftUI. Le PWA non girano su watchOS quindi è
-necessario un target nativo. Questa cartella contiene i sorgenti Swift
-da aggiungere a un progetto Xcode (template "watchOS App").
+App nativa watchOS in SwiftUI per riprodurre Radio e TV italiane
+direttamente dal polso. Niente companion iOS: la lista TV viene
+scaricata direttamente dall'orologio dalle stesse fonti del sito web
+(Free-TV/IPTV + iptv-org).
 
-## Funzionalità
+## Cosa fa
 
-- Lista **Radio** con tutte le emittenti (RTL 102.5, Radio 105, Subasio,
-  Subasio +, RDS, RDS Relax, Radio Sportiva, Radio 24) con loghi.
-- Lista **TV** con i canali italiani principali con loghi. Gli stream TV
-  vengono ricevuti dall'app iPhone tramite `WatchConnectivity` (perché
-  richiedono token che scadono e devono restare aggiornati lato phone).
-- Player audio (`AVPlayer`) compatibile con AirPods e altoparlante orologio.
-- Pagine: scorri tra Radio / TV. Pulsante "waveform" in alto a destra per
-  "In riproduzione" → play/pausa/stop.
-- Compatibile Apple Watch Ultra (schermo grande, Always-On).
+- **Radio** italiane principali (RTL 102.5, Radio 105, Subasio, Subasio+,
+  RDS, RDS Relax, Radio Sportiva, Radio 24) — lista curata in `Catalog.swift`.
+- **TV** italiana scaricata in tempo reale: Rai 1/2/3, Rete 4, Canale 5,
+  Italia 1, La7, TV8, Nove, Real Time, Sky TG24, Rai News 24, TGCom 24,
+  Cine34, Focus, e tutta la coda lunga di iptv-org. Pull-to-refresh per
+  ricaricare.
+- Player `AVPlayer` con audio in background (compatibile AirPods + speaker
+  Watch Ultra). Vista "In onda" con play/pausa/stop.
 
-## Setup Xcode
+## Setup (una sola volta, ~10 minuti)
 
-1. Apri Xcode → New Project → **watchOS App** (Swift, SwiftUI).
-2. Bundle ID consigliato: `com.mytv.app.watchkitapp`.
-3. Sostituisci i file generati con quelli in
-   `apple-watch/myTVWatch Watch App/`.
-4. In *Signing & Capabilities* aggiungi **Background Modes → Audio,
-   AirPlay, and Picture in Picture** così l'audio continua a riprodurre
-   in background.
-5. Build & Run su Apple Watch Ultra reale (il simulatore non riproduce
-   sempre gli stream HLS).
+Requisiti: Mac con Xcode installato (gratis dal Mac App Store), Apple ID,
+Apple Watch Ultra abbinato a un iPhone.
 
-## Pairing con iPhone
+### Opzione A — Automatica (consigliata)
 
-Per ricevere la lista canali TV con stream attivi, l'app companion iOS
-deve chiamare:
-
-```swift
-let payload: [String: Any] = [
-  "tv": [
-    ["name": "Rai 1", "streamURL": "https://.../rai1.m3u8",
-     "logoURL": "https://.../rai1.png"],
-    // …
-  ]
-]
-try? WCSession.default.updateApplicationContext(payload)
+```bash
+cd apple-watch
+chmod +x setup.sh
+./setup.sh
 ```
 
-L'orologio salva la lista in `UserDefaults` per la riproduzione offline
-del menu (gli stream restano comunque online).
+Lo script installa Homebrew se manca, installa xcodegen, genera il
+`myTVWatch.xcodeproj`, e apre Xcode automaticamente.
+
+### Opzione B — Manuale
+
+```bash
+brew install xcodegen
+cd apple-watch
+xcodegen
+open myTVWatch.xcodeproj
+```
+
+## In Xcode
+
+1. Pannello laterale → clicca **myTVWatch** (livello progetto in alto).
+2. **Signing & Capabilities** → Team → seleziona il tuo Apple ID
+   (`Bestred2002 (Personal Team)` o il tuo Developer Team).
+3. Collega iPhone via cavo USB (sblocca e abilita Developer Mode da
+   `Impostazioni → Privacy e sicurezza → Modalità sviluppatore`).
+4. Barra in alto di Xcode → destination → seleziona
+   **"Apple Watch via <nome iPhone>"**.
+5. **Cmd+R**. L'app si compila, si firma con il tuo Apple ID, viene
+   installata sull'iPhone e poi trasferita al Watch (1-2 min).
+6. Sull'iPhone → `Impostazioni → Generali → Gestione VPN e dispositivi`
+   → tocca il tuo Apple ID → **Fidati**.
+7. Apri l'app **myTV** sul Watch.
+
+## Durata della firma
+
+- **Apple ID gratis**: l'app dura **7 giorni**, poi va ricompilata da
+  Xcode (collega iPhone, Cmd+R).
+- **Apple Developer Program ($99/anno)**: dura **1 anno** e puoi
+  distribuire l'app via TestFlight ad altri utenti.
+
+## Struttura del codice
+
+```
+apple-watch/
+├── README.md                       (questo file)
+├── project.yml                     (config xcodegen)
+├── setup.sh                        (genera + apre xcodeproj)
+└── myTVWatch Watch App/
+    ├── Info.plist                  (Background Audio, App Transport Security)
+    ├── myTVWatchApp.swift          (entry point @main)
+    ├── ContentView.swift           (UI: tab Radio/TV, lista, now playing)
+    ├── PlayerStore.swift           (AVPlayer + cache UserDefaults)
+    └── Catalog.swift               (radio statica + fetch Free-TV/IPTV async)
+```
+
+## Aggiornamenti futuri
+
+Quando vuoi aggiungere/cambiare radio, edita `Catalog.swift` →
+`Catalog.radio` e ricompila. Per la TV non serve toccare nulla: la lista
+si aggiorna automaticamente da Free-TV/IPTV ad ogni avvio.
+
+Per ricompilare basta riaprire `myTVWatch.xcodeproj` e Cmd+R.
