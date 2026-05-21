@@ -57,6 +57,11 @@
     <button class="tab" data-tab="radio">Radio</button>
   </nav>
 
+  <div id="searchBar" class="search-bar hidden">
+    <input id="searchInput" type="search" placeholder="Cerca canale o radio…" />
+    <button id="closeSearch" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+
   <main>
     <ul id="channelList" class="channel-list"></ul>
   </main>
@@ -73,24 +78,44 @@
     </div>
   </div>
 
+  <!-- Modal: rename channel -->
+  <div id="renameModal" class="modal hidden">
+    <div class="modal-card">
+      <input id="renameInput" type="text" placeholder="Nuovo nome del canale" autocapitalize="none" autocorrect="off" />
+      <p class="modal-text">Inserisci il nuovo nome. Lascia vuoto per ripristinare l'originale.</p>
+      <div class="modal-actions">
+        <button id="renameCancelBtn" class="btn btn-dark">Annulla</button>
+        <button id="renameSaveBtn" class="btn btn-accent">Salva</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Side menu -->
   <aside id="sideMenu" class="side-menu hidden">
     <div class="side-content">
-      <h3>Impostazioni</h3>
+      <h3>Personalizzazione</h3>
+      <button id="editModeBtn" class="btn btn-accent wide">Modifica lista (ordina/nascondi/rinomina)</button>
+      <button id="resetCustomBtn" class="btn btn-dark wide">Reset ordine/nascosti/nomi</button>
+
+      <h3>Lista canali</h3>
       <button id="restoreDefaultBtn" class="btn btn-accent wide">Ripristina lista predefinita</button>
       <button id="clearListBtn" class="btn btn-dark wide">Rimuovi lista caricata</button>
       <button id="resetFavBtn" class="btn btn-dark wide">Cancella preferiti</button>
+
+      <h3>Sincronizzazione cross-device</h3>
+      <p class="hint">Sync via Gist GitHub privato. Crea un Personal Access Token con scope <code>gist</code> su <code>github.com/settings/tokens</code> e incollalo qui (uno per device).</p>
+      <input id="gistTokenInput" type="password" placeholder="ghp_..." autocapitalize="none" autocorrect="off" />
+      <div class="modal-actions" style="margin-top:8px;">
+        <button id="saveTokenBtn" class="btn btn-accent">Salva token</button>
+        <button id="manualSyncBtn" class="btn btn-dark">Sync ora</button>
+      </div>
+      <div id="syncStatus" class="sync-status">Sync non configurato</div>
+
       <h3>Info</h3>
       <p class="hint">Formati supportati: JSON (myTIVÙ-like) con campi <code>name</code> e <code>stream</code>, oppure playlist M3U/M3U8.</p>
-      <p class="hint">Esempio JSON:<br><code>[{"name":"Rai 1","stream":"https://..."},{...}]</code></p>
       <button id="closeMenuBtn" class="btn btn-accent wide">Chiudi</button>
     </div>
   </aside>
-
-  <div id="searchBar" class="search-bar hidden">
-    <input id="searchInput" type="search" placeholder="Cerca canale o radio…" />
-    <button id="closeSearch" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
   <script src="catalog.js"></script>
