@@ -1,5 +1,5 @@
 // Minimal app-shell cache. Streams are NEVER cached.
-const CACHE = 'mytv-v4';
+const CACHE = 'mytv-v5';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './catalog.js', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

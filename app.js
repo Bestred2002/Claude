@@ -120,8 +120,11 @@ function parseList(text) {
         const logoMatch = line.match(/tvg-logo="([^"]+)"/);
         const countryMatch = line.match(/tvg-country="([^"]+)"/);
         const groupMatch = line.match(/group-title="([^"]+)"/);
+        const rawName = nameMatch ? nameMatch[1].trim() : 'Canale';
+        // Free-TV/IPTV usa suffissi tipo "Ⓖ" (geo-locked label). Li rimuovo dal display.
+        const cleanName = rawName.replace(/[①-⓿☀-➿⬀-⯿️★]/g, '').replace(/\s+/g, ' ').trim();
         pending = {
-          name: nameMatch ? nameMatch[1].trim() : 'Canale',
+          name: cleanName || rawName,
           logo: logoMatch ? logoMatch[1] : null,
           country: countryMatch ? countryMatch[1] : null,
           group: groupMatch ? groupMatch[1] : null,
