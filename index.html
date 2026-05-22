@@ -8,14 +8,14 @@
 <meta name="apple-mobile-web-app-title" content="myTV" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#000000" />
-<link rel="manifest" href="manifest.webmanifest?v=5" />
-<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png?v=5" />
-<link rel="icon" type="image/png" sizes="64x64" href="icons/icon-64.png?v=5" />
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=5" />
-<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5" />
-<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5" />
+<link rel="manifest" href="manifest.webmanifest?v=6" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png?v=6" />
+<link rel="icon" type="image/png" sizes="64x64" href="icons/icon-64.png?v=6" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=6" />
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=6" />
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=6" />
 <title>myTV</title>
-<link rel="stylesheet" href="styles.css?v=5" />
+<link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
   <header class="topbar">
@@ -106,6 +106,10 @@
       <button id="clearListBtn" class="btn btn-dark wide">Rimuovi lista caricata</button>
       <button id="resetFavBtn" class="btn btn-dark wide">Cancella preferiti</button>
 
+      <h3>Audio in background</h3>
+      <p class="hint">Su iPhone Safari blocca l'audio quando lo schermo si spegne. Wake Lock tiene lo schermo acceso durante la riproduzione (drena la batteria). Per audio in background reale serve l'app nativa.</p>
+      <button id="wakeLockToggle" class="btn btn-dark wide">Wake Lock ON</button>
+
       <h3>Sincronizzazione cross-device</h3>
       <p class="hint">Sync via Gist GitHub privato. Crea un Personal Access Token con scope <code>gist</code> su <code>github.com/settings/tokens</code> e incollalo qui (uno per device).</p>
       <input id="gistTokenInput" type="password" placeholder="ghp_..." autocapitalize="none" autocorrect="off" />
@@ -122,7 +126,7 @@
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
-  <script src="catalog.js?v=5"></script>
-  <script src="app.js?v=5"></script>
+  <script src="catalog.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

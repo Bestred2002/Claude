@@ -367,24 +367,117 @@ function saveRename() {
   render();
 }
 
-// ---------- Player ----------
+// ---------- Player (stabile su iOS + recovery automatico) ----------
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let recoveryTimer = null;
+let stallTimer = null;
+let lastPlayheadAt = 0;
+let lastPlayheadTime = 0;
+let wakeLock = null;
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  if (localStorage.getItem('mytv.wakeLockDisabled') === '1') return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (e) { /* fallback silenzioso */ }
+}
+function releaseWakeLock() { try { wakeLock && wakeLock.release(); } catch {} wakeLock = null; }
+
+function setupMediaSession(ch) {
+  if (!('mediaSession' in navigator)) return;
+  const md = { title: displayName(ch), artist: 'myTV', album: currentTab === 'radio' ? 'Radio' : 'TV' };
+  if (ch.logo) md.artwork = [
+    { src: ch.logo, sizes: '96x96',  type: 'image/png' },
+    { src: ch.logo, sizes: '192x192', type: 'image/png' },
+    { src: ch.logo, sizes: '512x512', type: 'image/png' },
+  ];
+  try { navigator.mediaSession.metadata = new MediaMetadata(md); } catch {}
+  const v = $('#video');
+  navigator.mediaSession.setActionHandler('play',  () => { v.play().catch(()=>{}); });
+  navigator.mediaSession.setActionHandler('pause', () => v.pause());
+  navigator.mediaSession.setActionHandler('stop',  () => { v.pause(); v.removeAttribute('src'); v.load(); if (hls) { hls.destroy(); hls = null; } currentItem = null; releaseWakeLock(); render(); });
+}
+
+function startStallWatch(video) {
+  clearInterval(stallTimer);
+  lastPlayheadAt = Date.now();
+  lastPlayheadTime = video.currentTime || 0;
+  stallTimer = setInterval(() => {
+    if (!currentItem) { clearInterval(stallTimer); return; }
+    if (video.paused) { lastPlayheadAt = Date.now(); return; }
+    const t = video.currentTime || 0;
+    if (Math.abs(t - lastPlayheadTime) < 0.05) {
+      // playhead fermo: se più di 10s, prova reload
+      if (Date.now() - lastPlayheadAt > 10000) {
+        console.warn('Stream stallato, ricarico…');
+        reloadStream();
+      }
+    } else {
+      lastPlayheadTime = t;
+      lastPlayheadAt = Date.now();
+    }
+  }, 2000);
+}
+
 function play(ch) {
   currentItem = ch;
   $('#nowPlaying').textContent = displayName(ch);
   const video = $('#video');
   if (hls) { hls.destroy(); hls = null; }
+  clearTimeout(recoveryTimer);
+
   const url = ch.stream;
   const isHls = /\.m3u8(\?|$)/i.test(url);
-  if (isHls && window.Hls && Hls.isSupported()) {
-    hls = new Hls({ lowLatencyMode: true });
+  const safariCanPlayHLS = video.canPlayType('application/vnd.apple.mpegurl') !== '';
+
+  // Su iOS Safari il player nativo è MOLTO più stabile di HLS.js per HLS live.
+  if (isHls && (isIOS || safariCanPlayHLS)) {
+    video.src = url;
+    video.play().catch(()=>{});
+  } else if (isHls && window.Hls && Hls.isSupported()) {
+    hls = new Hls({
+      lowLatencyMode: false,           // disattivo: causa freeze su live italiani
+      backBufferLength: 30,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      liveSyncDurationCount: 4,
+      liveMaxLatencyDurationCount: 10,
+      manifestLoadingTimeOut: 12000,
+      manifestLoadingMaxRetry: 4,
+      fragLoadingTimeOut: 20000,
+      fragLoadingMaxRetry: 6,
+    });
     hls.loadSource(url);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-    hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) console.warn('HLS error', data); });
+    hls.on(Hls.Events.ERROR, (_, data) => {
+      console.warn('HLS event', data.type, data.details);
+      if (!data.fatal) return;
+      switch (data.type) {
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          hls.startLoad(); break;
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          hls.recoverMediaError(); break;
+        default:
+          // fatal non recuperabile → full reload dopo 3s
+          recoveryTimer = setTimeout(() => reloadStream(), 3000);
+      }
+    });
   } else {
     video.src = url;
     video.play().catch(()=>{});
   }
+
+  // Recovery anche su <video> events nativi
+  video.onerror = () => { recoveryTimer = setTimeout(() => reloadStream(), 3000); };
+  video.onended = () => { if (currentItem) reloadStream(); };
+  video.onstalled = () => { /* gestito da stall watchdog */ };
+  startStallWatch(video);
+  setupMediaSession(ch);
+  acquireWakeLock();
+
   if (window.mytvBridge) window.mytvBridge.sendNowPlaying(displayName(ch));
   render();
 }
@@ -682,8 +775,30 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#closePlayer').addEventListener('click', () => {
     const v = $('#video'); v.pause(); v.removeAttribute('src'); v.load();
     if (hls) { hls.destroy(); hls = null; }
+    clearInterval(stallTimer);
+    releaseWakeLock();
     currentItem = null; $('#nowPlaying').textContent = ''; render();
   });
+
+  // Riprende il wake lock quando l'app torna in primo piano
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && currentItem && !wakeLock) {
+      acquireWakeLock();
+    }
+  });
+
+  // Toggle wake lock nelle impostazioni
+  const wlBtn = $('#wakeLockToggle');
+  if (wlBtn) {
+    const refresh = () => { wlBtn.textContent = localStorage.getItem('mytv.wakeLockDisabled') === '1' ? 'Wake Lock OFF (audio si interrompe se schermo bloccato)' : 'Wake Lock ON (schermo resta acceso durante riproduzione)'; };
+    refresh();
+    wlBtn.addEventListener('click', () => {
+      const off = localStorage.getItem('mytv.wakeLockDisabled') === '1';
+      if (off) { localStorage.removeItem('mytv.wakeLockDisabled'); if (currentItem) acquireWakeLock(); }
+      else { localStorage.setItem('mytv.wakeLockDisabled', '1'); releaseWakeLock(); }
+      refresh();
+    });
+  }
 
   // Edit mode toggle
   $('#editModeBtn').addEventListener('click', () => { toggleEditMode(); closeMenu(); });
