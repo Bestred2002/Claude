@@ -20,6 +20,8 @@ I ricevitori si aprono in una **nuova scheda del browser**: è l'approccio più 
 - **KiwiSDR Lago di Viverone — IK1YRA** — 0–30 MHz.
 - **KiwiSDR Cagliari** — 0–30 MHz.
 - **KiwiSDR IZ6198SWL** — 0–30 MHz.
+- **KiwiSDR Bergamo — IW2KPL** (Lombardia) — 0–30 MHz, *disponibilità non verificata*.
+- **KiwiSDR Milano** (Lombardia) — 0–30 MHz, *disponibilità non verificata*.
 
 I KiwiSDR amatoriali possono andare **offline**: in quel caso usa le **mappe live** linkate nell'app (KiwiSDR map, websdr.org, A.I.R.) per trovarne altri attivi. Per aggiungere/aggiornare i ricevitori, modifica `receivers.js`.
 

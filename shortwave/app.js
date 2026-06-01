@@ -111,9 +111,13 @@
 
       var head = el('div', 'rx-head');
       head.appendChild(el('span', 'rx-title', rx.name));
-      var badge = el('span', 'rx-badge ' + (rx.type === 'websdr' ? 'websdr' : 'kiwi'),
-        rx.type === 'websdr' ? 'WebSDR' : 'KiwiSDR');
-      head.appendChild(badge);
+      var badges = el('span', 'rx-badges');
+      if (rx.unverified) {
+        badges.appendChild(el('span', 'rx-badge unverified', 'da verificare'));
+      }
+      badges.appendChild(el('span', 'rx-badge ' + (rx.type === 'websdr' ? 'websdr' : 'kiwi'),
+        rx.type === 'websdr' ? 'WebSDR' : 'KiwiSDR'));
+      head.appendChild(badges);
       card.appendChild(head);
 
       var loc = el('p', 'rx-loc');

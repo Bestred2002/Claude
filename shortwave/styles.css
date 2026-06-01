@@ -143,8 +143,10 @@ body {
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px;
   padding: 3px 7px; border-radius: 999px; flex: 0 0 auto;
 }
+.rx-badges { display: flex; gap: 6px; flex: 0 0 auto; }
 .rx-badge.websdr { background: rgba(245,158,11,0.18); color: var(--amber-2); }
 .rx-badge.kiwi { background: rgba(96,165,250,0.18); color: var(--kiwi); }
+.rx-badge.unverified { background: rgba(168,162,158,0.18); color: var(--muted); }
 .rx-loc { margin: 7px 0 0; font-size: 12.5px; color: var(--muted); }
 .rx-notes { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 .rx-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

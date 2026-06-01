@@ -46,6 +46,26 @@ window.RECEIVERS = [
     url: 'http://iz6198swl.proxy.kiwisdr.com:8073/',
     coverage: '0–30 MHz',
     notes: 'KiwiSDR gestito da un radioascoltatore (SWL) italiano.'
+  },
+  {
+    id: 'bergamo',
+    name: 'KiwiSDR Bergamo — IW2KPL',
+    city: 'Bergamo', region: 'Lombardia',
+    type: 'kiwi',
+    url: 'http://www.dxcluster.world:8073/',
+    coverage: '0–30 MHz',
+    unverified: true,
+    notes: 'Ricevitore di Franco (IW2KPL) con dipolo Windom multibanda, in Lombardia. Disponibilità non verificata: se non risponde, prova un altro ricevitore o le mappe live.'
+  },
+  {
+    id: 'milano',
+    name: 'KiwiSDR Milano',
+    city: 'Milano', region: 'Lombardia',
+    type: 'kiwi',
+    url: 'http://milano1602.dyndns.org:8073/',
+    coverage: '0–30 MHz',
+    unverified: true,
+    notes: 'Ricevitore nell’area di Milano. Disponibilità non verificata.'
   }
 ];
 
