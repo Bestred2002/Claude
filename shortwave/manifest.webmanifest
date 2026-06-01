@@ -1,0 +1,14 @@
+{
+  "name": "Onde Corte · SDR Italia",
+  "short_name": "Onde Corte",
+  "description": "Ascolta le onde corte (HF) in diretta da ricevitori SDR in Italia. Solo ascolto.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a09",
+  "theme_color": "#0c0a09",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
