@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Onde Corte" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#0c0a09" />
+<meta name="description" content="Ascolta le onde corte (HF) in diretta da ricevitori SDR in Italia. Solo ascolto, per avvicinarsi al mondo radioamatori." />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<title>Onde Corte · SDR Italia</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="led"></span>
+      <div>
+        <h1>Onde Corte</h1>
+        <p class="tag">Ascolto HF in diretta · ricevitori in Italia</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Ricevitore attivo -->
+    <section class="card">
+      <h2>1 · Scegli il ricevitore</h2>
+      <p class="muted">Tutti i ricevitori sono in <strong>Italia</strong>. Captano comunque segnali da tutto il mondo grazie alla propagazione. Quello selezionato verrà usato dalla sintonia rapida.</p>
+      <div id="rxChips" class="chips"></div>
+    </section>
+
+    <!-- Sintonia rapida -->
+    <section class="card">
+      <h2>2 · Sintonia rapida</h2>
+      <p class="muted">Tocca una banda: il ricevitore si apre in una nuova scheda <strong>già sintonizzato</strong>. Premi play se il browser lo richiede. <em>Solo ascolto, nessuna licenza necessaria.</em></p>
+      <div id="bands"></div>
+    </section>
+
+    <!-- Elenco ricevitori -->
+    <section class="card">
+      <h2>3 · Tutti i ricevitori (Italia)</h2>
+      <div id="rxList" class="rx-list"></div>
+    </section>
+
+    <!-- Directory -->
+    <section class="card">
+      <h2>Trova altri ricevitori</h2>
+      <p class="muted">I KiwiSDR amatoriali a volte sono offline. Da queste mappe live ne trovi sempre di attivi vicino a te.</p>
+      <div id="dirList" class="dir-list"></div>
+    </section>
+
+    <!-- Guida -->
+    <section class="card guide">
+      <h2>Guida rapida per iniziare</h2>
+      <details open>
+        <summary>Cosa sto ascoltando?</summary>
+        <ul>
+          <li><strong>Voci che si alternano</strong> con sottofondo "metallico": radioamatori in <strong>SSB</strong>. Si dicono nominativo (es. "IZ1ABC"), rapporto del segnale e zona.</li>
+          <li><strong>Fischi ritmici</strong> (tii-taa): codice <strong>Morse / CW</strong>.</li>
+          <li><strong>Musica e notiziari</strong> con fruscio: <strong>emittenti broadcast</strong> in AM.</li>
+          <li><strong>Suoni "digitali"</strong> (gorgoglii, trilli): modi digitali (FT8, RTTY…). Per ora solo curiosità.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>I modi (USB, LSB, AM, CW)</summary>
+        <ul>
+          <li><strong>LSB / USB</strong> = voce SSB. Regola: sotto 10 MHz si usa <strong>LSB</strong>, sopra <strong>USB</strong>. I pulsanti qui sopra lo fanno già per te.</li>
+          <li><strong>AM</strong> = emittenti broadcast (come la radio AM classica).</li>
+          <li><strong>CW</strong> = codice Morse.</li>
+          <li>Se una voce sembra "da paperino", cambia modo USB↔LSB o ritocca la frequenza di poche centinaia di Hz.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Quando ascoltare (propagazione)</summary>
+        <ul>
+          <li><strong>Sera/notte</strong>: bande basse — 80 m e 40 m. Tante voci in italiano la sera sui 40 m.</li>
+          <li><strong>Giorno</strong>: bande alte — 20 m, 15 m, 10 m. Contatti molto lontani (DX).</li>
+          <li>La propagazione cambia ogni giorno: se una banda è "muta", provane un’altra.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>È legale? Serve una licenza?</summary>
+        <p>Per <strong>solo ascolto</strong> non serve alcuna licenza: chiunque può ricevere. La licenza da radioamatore serve solo per <strong>trasmettere</strong>. Questa app non trasmette nulla: usa ricevitori altrui via Internet. È il modo classico per avvicinarsi all’hobby (i radioascoltatori si chiamano <strong>SWL</strong>).</p>
+      </details>
+      <details>
+        <summary>E quando passo all’hardware vero?</summary>
+        <p>Per ricevere da casa basta un piccolo ricevitore HF o una chiavetta SDR (RTL-SDR + upconverter, o un KiwiSDR/Airspy) e un filo d’antenna. Per <strong>trasmettere</strong> servono esame e licenza (in Italia tramite l’associazione/ispettorato territoriale). Intanto, con questa app, impari bande, modi e galateo ascoltando.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p>Solo ascolto · ricevitori pubblici di terzi. La disponibilità di ogni ricevitore può variare.</p>
+    <p class="dim">Aggiungi alla schermata Home: Safari → Condividi → “Aggiungi a Home”.</p>
+  </footer>
+
+  <script src="receivers.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
