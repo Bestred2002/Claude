@@ -1,7 +1,7 @@
 // Service worker: cache dell'app-shell per avvio offline.
 // I ricevitori SDR vivono su altri server e si aprono in una scheda esterna,
 // quindi NON vengono (e non possono essere) messi in cache qui.
-const CACHE = 'onde-corte-v1';
+const CACHE = 'onde-corte-v2';
 const SHELL = [
   './',
   './index.html',

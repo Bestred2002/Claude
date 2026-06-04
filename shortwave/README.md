@@ -1,36 +1,39 @@
 # Onde Corte · SDR Italia
 
-PWA per **ascoltare le onde corte (HF) in diretta** da ricevitori SDR situati in **Italia**, pensata per chi vuole avvicinarsi al mondo dei radioamatori **prima di comprare hardware**. Solo ascolto: nessuna trasmissione, nessuna licenza necessaria.
+PWA per **ascoltare la radio in diretta** — onde corte (HF) e **6 metri / VHF (50 MHz)** — da ricevitori SDR situati in **Italia**. Pensata per avvicinarsi al mondo dei radioamatori **prima di comprare hardware**. Solo ascolto: nessuna trasmissione, nessuna licenza necessaria.
 
-## Come funziona (e perché non basta lo smartphone)
+Sito live: **https://bestred2002.github.io/Claude/shortwave/**
 
-Uno smartphone **non ha** un ricevitore per le onde corte (3–30 MHz), quindi non può captare l'etere HF direttamente. Questa app usa invece i **WebSDR / KiwiSDR**: veri ricevitori radio collegati a Internet che chiunque può sintonizzare dal browser **in tempo reale**.
+## Come funziona
 
-L'app:
+Uno smartphone non ha un ricevitore radio HF/VHF, quindi non può captare l'etere direttamente. L'app usa **WebSDR / KiwiSDR / OpenWebRX**: veri ricevitori collegati a Internet, sintonizzabili dal browser in tempo reale.
 
-1. ti fa scegliere un **ricevitore in Italia** (un ricevitore italiano capta comunque segnali da tutto il mondo grazie alla propagazione);
-2. con la **sintonia rapida** apre il ricevitore **già sintonizzato** sulla banda/modo scelti (es. "40 m SSB", "20 m USB", "49 m AM", "Morse CW");
-3. include una **guida** a cosa stai ascoltando, ai modi (USB/LSB/AM/CW), alla propagazione e alla parte legale.
+Interfaccia a 3 gesti:
 
-I ricevitori si aprono in una **nuova scheda del browser**: è l'approccio più affidabile su iPhone/Safari (molti SDR bloccano l'incorporamento in iframe).
+1. scegli una **categoria** (Emittenti, Radioamatori, 6 m / VHF, Morse);
+2. tocca una **banda**: il ricevitore si apre in una nuova scheda **già sintonizzato**;
+3. opzionale: cambia **ricevitore** dalla barra in fondo.
+
+I ricevitori si aprono in una **nuova scheda** (l'approccio più affidabile su iPhone/Safari).
 
 ## Ricevitori inclusi (Italia)
 
-- **WebSDR Torino — I1YRB / CSP** (`websdr.ham.radio.it`) — storico e molto stabile, consigliato per iniziare.
-- **KiwiSDR Lago di Viverone — IK1YRA** — 0–30 MHz.
-- **KiwiSDR Cagliari** — 0–30 MHz.
-- **KiwiSDR IZ6198SWL** — 0–30 MHz.
-- **KiwiSDR Bergamo — IW2KPL** (Lombardia) — 0–30 MHz, *disponibilità non verificata*.
-- **KiwiSDR Milano** (Lombardia) — 0–30 MHz, *disponibilità non verificata*.
+| Ricevitore | Zona | Copertura | Note |
+|---|---|---|---|
+| WebSDR Torino (I1YRB) | Piemonte | HF | stabile, predefinito |
+| KiwiSDR Viverone | Piemonte | 0–30 MHz | |
+| KiwiSDR Cagliari | Sardegna | 0–30 MHz | |
+| KiwiSDR Bergamo (IW2KPL) | Lombardia | 0–30 MHz | da verificare |
+| KiwiSDR Milano | Lombardia | 0–30 MHz | da verificare |
+| OpenWebRX La Spezia | Liguria | HF + **VHF/6 m** | da verificare |
 
-I KiwiSDR amatoriali possono andare **offline**: in quel caso usa le **mappe live** linkate nell'app (KiwiSDR map, websdr.org, A.I.R.) per trovarne altri attivi. Per aggiungere/aggiornare i ricevitori, modifica `receivers.js`.
+La categoria **6 m / VHF** usa automaticamente il ricevitore di La Spezia (l'unico che copre i 50 MHz). Per aggiungere/aggiornare i ricevitori, modifica `receivers.js`.
 
-## Deep-link di sintonia
+## Deep-link di sintonia (freq in kHz)
 
-- **WebSDR**: `…/?tune=<freqKHz><modo>` → es. `?tune=7100lsb`
-- **KiwiSDR**: `…/?f=<freqKHz><modo>` → es. `?f=7100lsb`
-
-Regola modi: sotto 10 MHz i radioamatori usano **LSB**, sopra **USB**. La sintonia rapida lo imposta già correttamente.
+- **WebSDR**: `…/?tune=7100lsb`
+- **KiwiSDR**: `…/?f=7100lsb`
+- **OpenWebRX**: `…/#freq=50150000,mod=usb` (FM → `nfm`)
 
 ## Avvio locale
 
@@ -39,14 +42,10 @@ cd shortwave
 python3 -m http.server 8080
 ```
 
-Apri `http://localhost:8080`. Per il service worker serve `localhost` o HTTPS.
-
-## Installazione su iPhone
-
-Apri l'app in Safari → **Condividi** → **"Aggiungi a Home"**. Avrai un'icona indipendente a schermo intero.
+Apri `http://localhost:8080` (per il service worker serve `localhost` o HTTPS).
 
 ## Note
 
-- I ricevitori sono server pubblici di terzi: la disponibilità può variare nel tempo.
-- Alcuni ricevitori usano `http://` (non `https`): vengono aperti come navigazione esterna, quindi funzionano regolarmente anche se la PWA è servita in HTTPS.
+- Ricevitori = server pubblici di terzi: la disponibilità può variare. Quelli "da verificare" sono amatoriali e possono essere offline → usa le mappe live linkate nell'app.
+- Alcuni usano `http://`: aperti come navigazione esterna, funzionano anche se la PWA è in HTTPS.
 - Solo ascolto (SWL). Per trasmettere servono esame e licenza da radioamatore.
