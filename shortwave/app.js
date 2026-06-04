@@ -4,48 +4,23 @@
   var RECEIVERS = window.RECEIVERS || [];
   var BANDS = window.BANDS || [];
   var DIRECTORIES = window.DIRECTORIES || [];
-  var STORAGE_KEY = 'oc.activeRx';
 
-  // Ricevitore attivo (default: il primo "stable", altrimenti il primo).
-  function defaultRxId() {
-    for (var i = 0; i < RECEIVERS.length; i++) {
-      if (RECEIVERS[i].stable) return RECEIVERS[i].id;
-    }
-    return RECEIVERS.length ? RECEIVERS[0].id : null;
-  }
-  var activeId = localStorage.getItem(STORAGE_KEY) || defaultRxId();
-  if (!RECEIVERS.some(function (r) { return r.id === activeId; })) {
-    activeId = defaultRxId();
-  }
+  var hfReceivers = RECEIVERS.filter(function (r) { return r.caps.indexOf('hf') >= 0; });
+  var vhfReceiver = RECEIVERS.filter(function (r) { return r.caps.indexOf('vhf') >= 0; })[0] || null;
 
-  function getActive() {
-    return RECEIVERS.filter(function (r) { return r.id === activeId; })[0] || RECEIVERS[0];
-  }
+  // Stato
+  var activeCat = localStorage.getItem('oc.cat') || 'hams';
+  if (!BANDS.some(function (b) { return b.id === activeCat; })) activeCat = BANDS[0].id;
 
-  function setActive(id) {
-    activeId = id;
-    try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
-    renderChips();
-    renderBands();
-    renderList();
+  var hfId = localStorage.getItem('oc.hf');
+  if (!hfReceivers.some(function (r) { return r.id === hfId; })) {
+    var stable = hfReceivers.filter(function (r) { return r.stable; })[0];
+    hfId = (stable || hfReceivers[0]).id;
   }
+  var panelOpen = false;
 
-  // Costruisce il deep-link di sintonia in base al tipo di ricevitore.
-  function tuneUrl(rx, freqKHz, mode) {
-    var base = (rx.url || '').replace(/\/+$/, '');
-    if (rx.type === 'kiwi') {
-      // KiwiSDR: ?f=<freqKHz><modo>  es. ?f=7100lsb
-      return base + '/?f=' + freqKHz + mode;
-    }
-    // WebSDR: ?tune=<freqKHz><modo>  es. ?tune=7100lsb
-    return base + '/?tune=' + freqKHz + mode;
-  }
-
-  function openExternal(url) {
-    // Nuova scheda: massima compatibilità su iOS/Safari.
-    var w = window.open(url, '_blank', 'noopener');
-    if (!w) { location.href = url; } // fallback se il popup è bloccato
-  }
+  function activeHf() { return hfReceivers.filter(function (r) { return r.id === hfId; })[0]; }
+  function activeCategory() { return BANDS.filter(function (b) { return b.id === activeCat; })[0]; }
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -54,117 +29,149 @@
     return n;
   }
 
-  function fmtFreq(khz) {
-    return (khz / 1000).toFixed(khz % 1000 === 0 ? 3 : 3) + ' MHz';
+  // Deep-link di sintonia in base al tipo di ricevitore. freq in kHz.
+  function tuneUrl(rx, freqKHz, mode) {
+    var base = (rx.url || '').replace(/\/+$/, '');
+    if (rx.type === 'kiwi')      return base + '/?f=' + freqKHz + mode;
+    if (rx.type === 'openwebrx') {
+      var m = (mode === 'fm') ? 'nfm' : mode;        // OpenWebRX usa nfm
+      return base + '/#freq=' + (freqKHz * 1000) + ',mod=' + m;
+    }
+    return base + '/?tune=' + freqKHz + mode;          // websdr
   }
 
-  // --- Chips ricevitore ---
-  function renderChips() {
-    var box = document.getElementById('rxChips');
+  function open(url) {
+    var w = window.open(url, '_blank', 'noopener');
+    if (!w) location.href = url;
+  }
+
+  function fmtFreq(khz) { return (khz / 1000).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' MHz'; }
+
+  // Ricevitore usato dalla categoria attiva
+  function receiverFor(cat) {
+    return cat.band === 'vhf' ? (vhfReceiver || activeHf()) : activeHf();
+  }
+
+  // --- Categorie ---
+  function renderCats() {
+    var box = document.getElementById('cats');
     box.innerHTML = '';
-    RECEIVERS.forEach(function (rx) {
-      var chip = el('button', 'chip' + (rx.id === activeId ? ' active' : ''));
-      chip.appendChild(el('span', 'chip-name', rx.name.split('—')[0].trim()));
-      var meta = rx.city + (rx.type === 'websdr' ? ' · WebSDR' : ' · KiwiSDR');
-      chip.appendChild(el('span', 'chip-meta', meta));
-      chip.addEventListener('click', function () { setActive(rx.id); });
-      box.appendChild(chip);
+    BANDS.forEach(function (c) {
+      var b = el('button', 'cat' + (c.id === activeCat ? ' on' : ''));
+      b.appendChild(el('span', 'cat-ico', c.icon));
+      b.appendChild(el('span', 'cat-lbl', c.label));
+      b.addEventListener('click', function () {
+        activeCat = c.id;
+        try { localStorage.setItem('oc.cat', c.id); } catch (e) {}
+        renderAll();
+      });
+      box.appendChild(b);
     });
   }
 
-  // --- Sintonia rapida ---
+  // --- Bande (pulsanti) ---
   function renderBands() {
+    var cat = activeCategory();
+    document.getElementById('catSub').textContent = cat.sub;
     var box = document.getElementById('bands');
     box.innerHTML = '';
-    var rx = getActive();
-
-    var active = el('p', 'active-rx');
-    active.innerHTML = 'Ricevitore attivo: <strong>' + rx.name + '</strong> (' + rx.city + ')';
-    box.appendChild(active);
-
-    BANDS.forEach(function (grp) {
-      var g = el('div', 'band-group');
-      g.appendChild(el('h3', null, grp.group));
-      if (grp.hint) g.appendChild(el('p', 'band-hint', grp.hint));
-      var grid = el('div', 'band-grid');
-      grp.items.forEach(function (b) {
-        var btn = el('button', 'band-btn');
-        btn.appendChild(el('span', 'band-label', b.label));
-        btn.appendChild(el('span', 'band-freq', fmtFreq(b.freq) + ' · ' + b.mode.toUpperCase()));
-        if (b.desc) btn.appendChild(el('span', 'band-desc', b.desc));
-        btn.addEventListener('click', function () {
-          openExternal(tuneUrl(rx, b.freq, b.mode));
-        });
-        grid.appendChild(btn);
+    var rx = receiverFor(cat);
+    cat.items.forEach(function (it) {
+      var btn = el('button', 'band');
+      btn.appendChild(el('span', 'band-name', it.name));
+      btn.appendChild(el('span', 'band-freq', fmtFreq(it.freq) + ' · ' + it.mode.toUpperCase()));
+      if (it.hint) btn.appendChild(el('span', 'band-hint', it.hint));
+      btn.addEventListener('click', function () {
+        if (!rx) return;
+        open(tuneUrl(rx, it.freq, it.mode));
       });
-      g.appendChild(grid);
-      box.appendChild(g);
+      box.appendChild(btn);
     });
   }
 
-  // --- Elenco ricevitori ---
-  function renderList() {
-    var box = document.getElementById('rxList');
-    box.innerHTML = '';
-    RECEIVERS.forEach(function (rx) {
-      var card = el('div', 'rx-card' + (rx.id === activeId ? ' current' : ''));
+  // --- Barra ricevitore ---
+  function renderRxBar() {
+    var cat = activeCategory();
+    var bar = document.getElementById('rxBar');
+    bar.innerHTML = '';
 
-      var head = el('div', 'rx-head');
-      head.appendChild(el('span', 'rx-title', rx.name));
-      var badges = el('span', 'rx-badges');
-      if (rx.unverified) {
-        badges.appendChild(el('span', 'rx-badge unverified', 'da verificare'));
-      }
-      badges.appendChild(el('span', 'rx-badge ' + (rx.type === 'websdr' ? 'websdr' : 'kiwi'),
-        rx.type === 'websdr' ? 'WebSDR' : 'KiwiSDR'));
-      head.appendChild(badges);
-      card.appendChild(head);
+    if (cat.band === 'vhf') {
+      // VHF: ricevitore fisso (La Spezia)
+      var info = el('div', 'rx-fixed');
+      info.appendChild(el('span', 'rx-fixed-lbl', 'Ricevitore VHF'));
+      var name = el('span', 'rx-fixed-name', vhfReceiver ? vhfReceiver.name : '—');
+      if (vhfReceiver && vhfReceiver.unverified) name.appendChild(el('span', 'tag', 'da verificare'));
+      info.appendChild(name);
+      bar.appendChild(info);
+      document.getElementById('rxPanel').classList.add('hidden');
+      panelOpen = false;
+      return;
+    }
 
-      var loc = el('p', 'rx-loc');
-      loc.textContent = '📍 ' + rx.city + (rx.region ? ' (' + rx.region + ')' : '') + ' · ' + rx.coverage;
-      card.appendChild(loc);
+    var rx = activeHf();
+    var toggle = el('button', 'rx-toggle');
+    toggle.appendChild(el('span', 'rx-toggle-lbl', 'Ricevitore'));
+    var val = el('span', 'rx-toggle-val', rx.name);
+    val.appendChild(el('span', 'chev', panelOpen ? '▴' : '▾'));
+    toggle.appendChild(val);
+    toggle.addEventListener('click', function () {
+      panelOpen = !panelOpen;
+      renderRxBar();
+      renderRxPanel();
+    });
+    bar.appendChild(toggle);
+  }
 
-      if (rx.notes) card.appendChild(el('p', 'rx-notes', rx.notes));
-
-      var actions = el('div', 'rx-actions');
-      var openBtn = el('button', 'btn btn-amber', 'Apri ricevitore');
-      openBtn.addEventListener('click', function () { openExternal(rx.url); });
-      actions.appendChild(openBtn);
-
-      if (rx.id !== activeId) {
-        var selBtn = el('button', 'btn btn-ghost', 'Usa per sintonia');
-        selBtn.addEventListener('click', function () { setActive(rx.id); });
-        actions.appendChild(selBtn);
-      } else {
-        actions.appendChild(el('span', 'rx-current-tag', '★ attivo per la sintonia'));
-      }
-      card.appendChild(actions);
-      box.appendChild(card);
+  // --- Pannello scelta ricevitore HF ---
+  function renderRxPanel() {
+    var panel = document.getElementById('rxPanel');
+    panel.innerHTML = '';
+    if (!panelOpen || activeCategory().band === 'vhf') {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+    hfReceivers.forEach(function (r) {
+      var row = el('button', 'rx-row' + (r.id === hfId ? ' on' : ''));
+      var left = el('span', 'rx-row-main');
+      var nm = el('span', 'rx-row-name', r.name);
+      if (r.unverified) nm.appendChild(el('span', 'tag', 'da verificare'));
+      left.appendChild(nm);
+      left.appendChild(el('span', 'rx-row-loc', (r.region || r.city) + ' · ' + r.coverage));
+      row.appendChild(left);
+      row.appendChild(el('span', 'rx-row-check', r.id === hfId ? '✓' : ''));
+      row.addEventListener('click', function () {
+        hfId = r.id;
+        try { localStorage.setItem('oc.hf', r.id); } catch (e) {}
+        panelOpen = false;
+        renderAll();
+      });
+      panel.appendChild(row);
     });
   }
 
-  // --- Directory ---
-  function renderDirectories() {
-    var box = document.getElementById('dirList');
-    box.innerHTML = '';
-    DIRECTORIES.forEach(function (d) {
-      var a = el('a', 'dir-item');
-      a.href = d.url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.appendChild(el('span', 'dir-name', d.name));
-      a.appendChild(el('span', 'dir-desc', d.desc));
+  function renderDirs() {
+    var box = document.getElementById('dirs');
+    if (!box) return;
+    box.innerHTML = 'Altri ricevitori: ';
+    DIRECTORIES.forEach(function (d, i) {
+      var a = el('a', null, d.name);
+      a.href = d.url; a.target = '_blank'; a.rel = 'noopener';
       box.appendChild(a);
+      if (i < DIRECTORIES.length - 1) box.appendChild(document.createTextNode(' · '));
     });
   }
 
-  // Init
-  renderChips();
-  renderBands();
-  renderList();
-  renderDirectories();
+  function renderAll() {
+    renderCats();
+    renderBands();
+    renderRxBar();
+    renderRxPanel();
+  }
 
-  // Service worker (offline app-shell)
+  renderAll();
+  renderDirs();
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () {});
