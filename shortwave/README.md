@@ -8,11 +8,13 @@ Sito live: **https://bestred2002.github.io/Claude/shortwave/**
 
 Uno smartphone non ha un ricevitore radio HF/VHF, quindi non può captare l'etere direttamente. L'app usa **WebSDR / KiwiSDR / OpenWebRX**: veri ricevitori collegati a Internet, sintonizzabili dal browser in tempo reale.
 
+Gamma coperta: da ~100 kHz (onde lunghe) fino a ~1,3 GHz, nei modi **AM · FM · FMW (WFM) · SSB · CW**.
+
 Interfaccia a 3 gesti:
 
-1. scegli una **categoria** (Emittenti, Radioamatori, 6 m / VHF, Morse);
+1. scegli una **categoria** (onde medie, emittenti OC, radioamatori, Morse, 6 m, FM 88–108, aerei, 2 m, 70 cm, 23 cm);
 2. tocca una **banda**: il ricevitore si apre in una nuova scheda **già sintonizzato**;
-3. opzionale: cambia **ricevitore** dalla barra in fondo.
+3. opzionale: cambia **ricevitore** dalla barra in fondo (sopra i 30 MHz si usa un ricevitore VHF/UHF; con “Altri ›” trovi ricevitori per qualsiasi banda).
 
 I ricevitori si aprono in una **nuova scheda** (l'approccio più affidabile su iPhone/Safari).
 
