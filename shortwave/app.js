@@ -34,7 +34,7 @@
     var base = (rx.url || '').replace(/\/+$/, '');
     if (rx.type === 'kiwi')      return base + '/?f=' + freqKHz + mode;
     if (rx.type === 'openwebrx') {
-      var m = (mode === 'fm') ? 'nfm' : mode;        // OpenWebRX usa nfm
+      var m = mode === 'fm' ? 'nfm' : (mode === 'fmw' ? 'wfm' : mode); // FM->nfm, FMW->wfm
       return base + '/#freq=' + (freqKHz * 1000) + ',mod=' + m;
     }
     return base + '/?tune=' + freqKHz + mode;          // websdr
@@ -45,11 +45,14 @@
     if (!w) location.href = url;
   }
 
-  function fmtFreq(khz) { return (khz / 1000).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' MHz'; }
+  function fmtFreq(khz) {
+    if (khz < 1000) return khz + ' kHz';
+    return (khz / 1000).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' MHz';
+  }
 
   // Ricevitore usato dalla categoria attiva
   function receiverFor(cat) {
-    return cat.band === 'vhf' ? (vhfReceiver || activeHf()) : activeHf();
+    return cat.rxBand === 'high' ? (vhfReceiver || activeHf()) : activeHf();
   }
 
   // --- Categorie ---
@@ -95,13 +98,20 @@
     var bar = document.getElementById('rxBar');
     bar.innerHTML = '';
 
-    if (cat.band === 'vhf') {
-      // VHF: ricevitore fisso (La Spezia)
+    if (cat.rxBand === 'high') {
+      // VHF/UHF: ricevitore fisso (wideband) + scorciatoia per trovarne altri
       var info = el('div', 'rx-fixed');
-      info.appendChild(el('span', 'rx-fixed-lbl', 'Ricevitore VHF'));
+      var left = el('span', 'rx-fixed-main');
+      left.appendChild(el('span', 'rx-fixed-lbl', 'Ricevitore VHF/UHF'));
       var name = el('span', 'rx-fixed-name', vhfReceiver ? vhfReceiver.name : '—');
       if (vhfReceiver && vhfReceiver.unverified) name.appendChild(el('span', 'tag', 'da verificare'));
-      info.appendChild(name);
+      left.appendChild(name);
+      info.appendChild(left);
+      if (DIRECTORIES[0]) {
+        var find = el('a', 'rx-find', 'Altri ›');
+        find.href = DIRECTORIES[0].url; find.target = '_blank'; find.rel = 'noopener';
+        info.appendChild(find);
+      }
       bar.appendChild(info);
       document.getElementById('rxPanel').classList.add('hidden');
       panelOpen = false;
@@ -126,7 +136,7 @@
   function renderRxPanel() {
     var panel = document.getElementById('rxPanel');
     panel.innerHTML = '';
-    if (!panelOpen || activeCategory().band === 'vhf') {
+    if (!panelOpen || activeCategory().rxBand === 'high') {
       panel.classList.add('hidden');
       return;
     }
