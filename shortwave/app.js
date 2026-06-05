@@ -5,6 +5,13 @@
   var BANDS = window.BANDS || [];
   var DIRECTORIES = window.DIRECTORIES || [];
 
+  // Mostra solo alcune categorie, se richiesto (window.SHOW_ONLY = id o array di id)
+  if (window.SHOW_ONLY) {
+    var onlyArr = Array.isArray(window.SHOW_ONLY) ? window.SHOW_ONLY : [window.SHOW_ONLY];
+    var filtered = BANDS.filter(function (b) { return onlyArr.indexOf(b.id) >= 0; });
+    if (filtered.length) BANDS = filtered;
+  }
+
   var hfReceivers = RECEIVERS.filter(function (r) { return r.caps.indexOf('hf') >= 0; });
   var vhfReceiver = RECEIVERS.filter(function (r) { return r.caps.indexOf('vhf') >= 0; })[0] || null;
 
@@ -59,6 +66,7 @@
   function renderCats() {
     var box = document.getElementById('cats');
     box.innerHTML = '';
+    box.style.display = BANDS.length <= 1 ? 'none' : '';   // nascondi se una sola scheda
     BANDS.forEach(function (c) {
       var b = el('button', 'cat' + (c.id === activeCat ? ' on' : ''));
       b.appendChild(el('span', 'cat-ico', c.icon));
