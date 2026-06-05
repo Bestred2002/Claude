@@ -50,10 +50,77 @@ window.RECEIVERS = [
   }
 ];
 
+// Mostra SOLO questa scheda (categoria). Metti null per mostrare tutte.
+window.SHOW_ONLY = 'fav';
+
 // Piano bande, da ~100 kHz a ~1,3 GHz. freq in kHz.
 // rxBand: 'hf' (usa il ricevitore HF scelto) | 'high' (usa ricevitore VHF/UHF)
 // modi: am · lsb · usb · cw · fm (FM stretta) · fmw (FM larga = WFM)
 window.BANDS = [
+  {
+    id: 'fav', label: 'Preferite', icon: '★', rxBand: 'high',
+    sub: 'Lista Lombardia (link/ponti/DMR). Frequenze locali e in parte digitali (DMR): per sentirle serve un SDR locale in Lombardia che copra VHF/UHF — col tasto «Altri ›» ne cerchi uno. Su molti SDR non daranno audio.',
+    items: [
+      // 76–79 MHz
+      { name: '76.700', freq: 76700, mode: 'fm', hint: 'Bergamo' },
+      { name: '77.750', freq: 77750, mode: 'fm', hint: 'Bergamo' },
+      { name: '78.075', freq: 78075, mode: 'fm', hint: 'Bergamo' },
+      { name: '78.250', freq: 78250, mode: 'fm', hint: 'Bergamo' },
+      { name: '79.025', freq: 79025, mode: 'fm', hint: 'Bergamo/Milano' },
+      { name: '73.062', freq: 73062, mode: 'fm', hint: 'Brescia Tx' },
+      { name: '73.862', freq: 73862, mode: 'fm', hint: 'Brescia Rx' },
+      { name: '78.725', freq: 78725, mode: 'fm', hint: 'Brescia' },
+      { name: '76.850', freq: 76850, mode: 'fm', hint: 'Milano' },
+      { name: '77.925', freq: 77925, mode: 'fm', hint: 'Milano' },
+      { name: '78.000', freq: 78000, mode: 'fm', hint: 'Milano' },
+      { name: '78.275', freq: 78275, mode: 'fm', hint: 'Milano' },
+      { name: '78.325', freq: 78325, mode: 'fm', hint: 'Milano' },
+      { name: '78.500', freq: 78500, mode: 'fm', hint: 'Milano' },
+      { name: '78.675', freq: 78675, mode: 'fm', hint: 'Milano' },
+      { name: '79.075', freq: 79075, mode: 'fm', hint: 'Milano' },
+      { name: '79.100', freq: 79100, mode: 'fm', hint: 'Milano' },
+      { name: '78.700', freq: 78700, mode: 'fm', hint: 'Monza' },
+      // 425–426 MHz (link master UHF)
+      { name: '425.000', freq: 425000, mode: 'fm', hint: 'Monza' },
+      { name: '425.050', freq: 425050, mode: 'fm', hint: 'Monza' },
+      { name: '425.075', freq: 425075, mode: 'fm', hint: 'Milano' },
+      { name: '425.125', freq: 425125, mode: 'fm', hint: 'Milano' },
+      { name: '425.150', freq: 425150, mode: 'fm', hint: 'Monza' },
+      { name: '425.225', freq: 425225, mode: 'fm', hint: 'Milano' },
+      { name: '425.300', freq: 425300, mode: 'fm', hint: 'Abbiategrasso' },
+      { name: '425.450', freq: 425450, mode: 'fm', hint: 'Milano' },
+      { name: '425.600', freq: 425600, mode: 'fm', hint: 'Monza' },
+      { name: '425.675', freq: 425675, mode: 'fm', hint: 'Monza' },
+      { name: '425.750', freq: 425750, mode: 'fm', hint: 'Milano' },
+      { name: '425.950', freq: 425950, mode: 'fm', hint: 'Bergamo' },
+      { name: '425.975', freq: 425975, mode: 'fm', hint: 'Abbiategrasso' },
+      { name: '426.000', freq: 426000, mode: 'fm', hint: 'Milano' },
+      { name: '426.200', freq: 426200, mode: 'fm', hint: 'Bergamo' },
+      { name: '426.325', freq: 426325, mode: 'fm', hint: 'Bergamo' },
+      { name: '426.475', freq: 426475, mode: 'fm', hint: 'Abbiategrasso' },
+      { name: '426.525', freq: 426525, mode: 'fm', hint: 'Abbiategrasso' },
+      { name: '426.700', freq: 426700, mode: 'fm', hint: 'Abbiategrasso' },
+      { name: '426.800', freq: 426800, mode: 'fm', hint: 'Bergamo' },
+      { name: '426.900', freq: 426900, mode: 'fm', hint: 'Bergamo' },
+      // VHF 157–168 MHz
+      { name: '157.300', freq: 157300, mode: 'fm', hint: 'Milano' },
+      { name: '157.325', freq: 157325, mode: 'fm', hint: 'Milano' },
+      { name: '157.400', freq: 157400, mode: 'fm', hint: 'Milano' },
+      { name: '158.900', freq: 158900, mode: 'fm', hint: 'Milano' },
+      { name: '160.175', freq: 160175, mode: 'fm', hint: 'Milano' },
+      { name: '160.225', freq: 160225, mode: 'fm', hint: 'Milano' },
+      { name: '160.400', freq: 160400, mode: 'fm', hint: 'Milano' },
+      { name: '160.625', freq: 160625, mode: 'fm', hint: 'Vignate' },
+      { name: '161.475', freq: 161475, mode: 'fm', hint: 'Cernusco SN' },
+      { name: '168.450', freq: 168450, mode: 'fm', hint: 'Pioltello' },
+      // Range DMO/NFM (apre all'inizio della gamma)
+      { name: 'VHF DMO', freq: 148000, mode: 'fm', hint: '148–174 · digitale (DMR)' },
+      { name: 'UHF DMO', freq: 380000, mode: 'fm', hint: '380–400 · digitale (DMR)' },
+      { name: 'NFM 404', freq: 404000, mode: 'fm', hint: '404–405.9 · MCPC' },
+      { name: 'NFM 406', freq: 406200, mode: 'fm', hint: '406.2–410 · MCPC' },
+      { name: 'NFM +10', freq: 410000, mode: 'fm', hint: '410–427' }
+    ]
+  },
   {
     id: 'mw', label: 'Onde medie', icon: '🌙', rxBand: 'hf',
     sub: 'Onde lunghe e medie in AM. Meglio con un ricevitore KiwiSDR.',
