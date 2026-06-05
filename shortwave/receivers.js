@@ -50,8 +50,10 @@ window.RECEIVERS = [
   }
 ];
 
-// Mostra SOLO questa scheda (categoria). Metti null per mostrare tutte.
-window.SHOW_ONLY = 'fav';
+// Mostra SOLO alcune categorie (id o array). null = mostra tutte.
+// "Preferite" resta la prima scheda; le altre bande (che funzionano da
+// remoto) restano disponibili.
+window.SHOW_ONLY = null;
 
 // Piano bande, da ~100 kHz a ~1,3 GHz. freq in kHz.
 // rxBand: 'hf' (usa il ricevitore HF scelto) | 'high' (usa ricevitore VHF/UHF)
@@ -59,9 +61,9 @@ window.SHOW_ONLY = 'fav';
 window.BANDS = [
   {
     id: 'fav', label: 'Preferite', icon: '★', rxBand: 'high',
-    sub: 'Lista Lombardia (link/ponti/DMR). Frequenze locali e in parte digitali (DMR): per sentirle serve un SDR locale in Lombardia che copra VHF/UHF — col tasto «Altri ›» ne cerchi uno. Su molti SDR non daranno audio.',
+    sub: 'Lista Lombardia (link/ponti/DMR), tenuta come riferimento. Sono frequenze locali e in parte digitali (DMR): da remoto quasi sempre NON danno audio (servirebbe un ricevitore in zona). Nel frattempo le altre schede funzionano subito, gratis e senza comprare nulla.',
     items: [
-      // 76–79 MHz
+      { divider: '76–79 MHz' },
       { name: '76.700', freq: 76700, mode: 'fm', hint: 'Bergamo' },
       { name: '77.750', freq: 77750, mode: 'fm', hint: 'Bergamo' },
       { name: '78.075', freq: 78075, mode: 'fm', hint: 'Bergamo' },
@@ -80,7 +82,7 @@ window.BANDS = [
       { name: '79.075', freq: 79075, mode: 'fm', hint: 'Milano' },
       { name: '79.100', freq: 79100, mode: 'fm', hint: 'Milano' },
       { name: '78.700', freq: 78700, mode: 'fm', hint: 'Monza' },
-      // 425–426 MHz (link master UHF)
+      { divider: '425–426 MHz · link UHF' },
       { name: '425.000', freq: 425000, mode: 'fm', hint: 'Monza' },
       { name: '425.050', freq: 425050, mode: 'fm', hint: 'Monza' },
       { name: '425.075', freq: 425075, mode: 'fm', hint: 'Milano' },
@@ -102,7 +104,7 @@ window.BANDS = [
       { name: '426.700', freq: 426700, mode: 'fm', hint: 'Abbiategrasso' },
       { name: '426.800', freq: 426800, mode: 'fm', hint: 'Bergamo' },
       { name: '426.900', freq: 426900, mode: 'fm', hint: 'Bergamo' },
-      // VHF 157–168 MHz
+      { divider: 'VHF 157–168 MHz' },
       { name: '157.300', freq: 157300, mode: 'fm', hint: 'Milano' },
       { name: '157.325', freq: 157325, mode: 'fm', hint: 'Milano' },
       { name: '157.400', freq: 157400, mode: 'fm', hint: 'Milano' },
@@ -113,7 +115,7 @@ window.BANDS = [
       { name: '160.625', freq: 160625, mode: 'fm', hint: 'Vignate' },
       { name: '161.475', freq: 161475, mode: 'fm', hint: 'Cernusco SN' },
       { name: '168.450', freq: 168450, mode: 'fm', hint: 'Pioltello' },
-      // Range DMO/NFM (apre all'inizio della gamma)
+      { divider: 'DMO / NFM (range)' },
       { name: 'VHF DMO', freq: 148000, mode: 'fm', hint: '148–174 · digitale (DMR)' },
       { name: 'UHF DMO', freq: 380000, mode: 'fm', hint: '380–400 · digitale (DMR)' },
       { name: 'NFM 404', freq: 404000, mode: 'fm', hint: '404–405.9 · MCPC' },
@@ -214,6 +216,7 @@ window.BANDS = [
 // Mappe live per trovare ricevitori che coprano una specifica banda.
 window.DIRECTORIES = [
   { name: 'Ricevitori OpenWebRX (VHF/UHF)', url: 'https://www.receiverbook.de/' },
+  { name: 'Mappa SDR (tutti i tipi)', url: 'https://rx-tx.info/map-sdr-points' },
   { name: 'Mappa KiwiSDR (Italia)', url: 'http://kiwisdr.com/public/' },
   { name: 'Elenco WebSDR', url: 'http://websdr.org/' }
 ];
