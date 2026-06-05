@@ -88,6 +88,7 @@
     box.innerHTML = '';
     var rx = receiverFor(cat);
     cat.items.forEach(function (it) {
+      if (it.divider) { box.appendChild(el('div', 'band-divider', it.divider)); return; }
       var btn = el('button', 'band');
       btn.appendChild(el('span', 'band-name', it.name));
       btn.appendChild(el('span', 'band-freq', fmtFreq(it.freq) + ' · ' + it.mode.toUpperCase()));

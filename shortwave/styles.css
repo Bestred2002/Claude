@@ -62,6 +62,11 @@ body { max-width: 640px; margin: 0 auto; padding: 0 16px calc(32px + env(safe-ar
   content: '▸'; position: absolute; top: 14px; right: 15px; color: var(--amber); font-size: 15px;
 }
 .band:active { transform: scale(0.97); background: var(--amber-soft); border-color: var(--amber); }
+.band-divider {
+  grid-column: 1 / -1;
+  font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--amber); padding: 8px 2px 2px;
+}
 .band-name { font-size: 20px; font-weight: 700; }
 .band-freq {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
