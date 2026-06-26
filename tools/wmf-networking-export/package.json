@@ -1,0 +1,14 @@
+{
+  "name": "wmf-networking-export",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Esporta in Excel i contatti della sezione Networking di wmf.ibrida.io",
+  "scripts": {
+    "start": "node export.js",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "playwright": "^1.49.0"
+  }
+}
