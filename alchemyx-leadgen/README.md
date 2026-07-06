@@ -22,6 +22,22 @@ candidati       + verifica MX          e filtra        pronte per Gmail
 Flusso tipico: `discovery` produce `discovery/output/domains.txt` → lo passi al
 rilevatore → `output/leads.json` si apre nella `dashboard` e alimenta `outreach`.
 
+## Google Sheet (database lead condiviso)
+
+I lead vivono anche in un Google Sheet nel Drive del team:
+**"Alchemyx — Lead Pipeline"** — ID foglio: `10mdY0baQySR6aCz-IOhe9-wqCB9xOtF88rFMR9wXgGQ`
+([apri](https://docs.google.com/spreadsheets/d/10mdY0baQySR6aCz-IOhe9-wqCB9xOtF88rFMR9wXgGQ/edit)).
+Le colonne sono identiche a `output/leads.csv`.
+
+Sincronizzazione a costo zero, in ordine di comodità:
+
+1. **Chiedi a Claude** (in una sessione con Google Drive collegato):
+   *"sincronizza output/leads.csv sul foglio Alchemyx — Lead Pipeline"*.
+2. **Import manuale**: nel foglio, `File → Importa → Carica` →
+   seleziona `output/leads.csv` → "Sostituisci foglio di lavoro". 30 secondi.
+3. La **dashboard** esporta in CSV anche i soli lead filtrati
+   ("Esporta CSV"), utile per import parziali.
+
 ---
 
 ## Il rilevatore (modulo core)
