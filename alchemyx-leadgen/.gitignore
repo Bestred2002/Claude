@@ -1,0 +1,6 @@
+# Output generato (rigenerabile con `npm run detect`)
+output/*.csv
+output/*.json
+
+# Dipendenze (non dovrebbero mai esistere: zero-dependency!)
+node_modules/

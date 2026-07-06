@@ -1,0 +1,15 @@
+{
+  "name": "alchemyx-leadgen",
+  "version": "1.0.0",
+  "description": "Alchemyx - Lead generation zero-cost per PMI italiane: rileva pixel/tag pubblicitari, estrae email e verifica MX. Solo built-in Node.js, zero dipendenze.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "detect": "node src/index.js"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}
