@@ -19,11 +19,29 @@ avvio precedente è già attivo, viene riutilizzato: si apre solo il browser.
   (o in `/Applicazioni`... ma se la sposti fuori dal progetto, l'app cerca
   comunque la dashboard risalendo le cartelle; tienila dentro
   `alchemyx-leadgen/launcher/` per sicurezza).
-- **Primo avvio**: l'app non è firmata, quindi Gatekeeper la blocca.
-  Fai **tasto destro (Ctrl+click) &rarr; Apri &rarr; Apri** la prima volta;
-  dai successivi avvii basta il doppio click.
+- **Primo avvio — l'app non è firmata, Gatekeeper la blocca.**
+  Su macOS recenti (Sequoia 15+) il vecchio trucco "tasto destro → Apri"
+  **non basta più**. Procedura (una volta sola):
+  1. Al messaggio *"LEAD GEN.app non è stata aperta"* clicca **«Fine»**
+     (⚠️ NON «Sposta nel Cestino»).
+  2. ** → Impostazioni di Sistema → Privacy e Sicurezza**, scorri in
+     fondo: alla riga *«"LEAD GEN.app" è stata bloccata…»* clicca
+     **«Apri comunque»**.
+  3. Riapri l'app e conferma **«Apri»** (può chiedere la password).
+
+  In alternativa, da Terminale (rimuove la quarantena in un colpo solo):
+
+  ```sh
+  xattr -dr com.apple.quarantine "/percorso/di/LEAD GEN.app"
+  ```
+
+  Su macOS più vecchi (fino a Sonoma 14) basta il classico
+  **tasto destro (Ctrl+click) → Apri → Apri** la prima volta.
 - In alternativa usa **`Avvia LEAD GEN.command`** (doppio click): fa la
-  stessa cosa da una finestra del Terminale.
+  stessa cosa da una finestra del Terminale (anche questo file, se
+  scaricato, può richiedere la stessa procedura di sblocco).
+- L'app è trasparente: il "programma" è lo script leggibile in
+  `LEAD GEN.app/Contents/MacOS/alchemyx` (~60 righe di shell commentate).
 
 ## Windows
 
