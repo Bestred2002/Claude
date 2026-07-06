@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alchemyx — Pipeline Lead</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">Ax</div>
+        <div>
+          <h1>Alchemyx — Pipeline Lead</h1>
+          <p class="subtitle">Dashboard dei lead rilevati dal detector · siti che investono in advertising</p>
+        </div>
+      </div>
+      <nav class="header-nav" aria-label="Strumenti">
+        <a class="header-nav-link" href="../discovery/map/index.html">🗺️ Trova lead (mappa)</a>
+      </nav>
+      <div class="data-source" id="data-source" title="Origine dei dati attualmente caricati">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="data-source-label">Caricamento…</span>
+      </div>
+      <button class="btn btn-secondary btn-refresh" id="btn-refresh" type="button"
+              title="Ricarica i lead da output/leads.json">🔄 Aggiorna</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Banner "analisi in corso": visibile solo quando il server locale
+         Node (LEAD GEN app) sta eseguendo un job di rilevamento. -->
+    <section class="live-banner" id="live-banner" hidden aria-live="polite">
+      <div class="live-banner-row">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="live-text">Analisi in corso…</span>
+      </div>
+      <div class="live-track" aria-hidden="true">
+        <div class="live-fill" id="live-fill"></div>
+      </div>
+    </section>
+
+    <!-- Zona caricamento file: input + drag & drop -->
+    <section class="dropzone" id="dropzone" aria-label="Carica il file leads.json">
+      <div class="dropzone-inner">
+        <svg class="dropzone-icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path fill="currentColor" d="M12 3l4 4h-3v6h-2V7H8l4-4zm-7 13h14v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2z"/>
+        </svg>
+        <p><strong>Trascina qui</strong> il tuo <code>leads.json</code> oppure</p>
+        <label class="btn btn-primary" for="file-input">Carica leads.json</label>
+        <input type="file" id="file-input" accept=".json,application/json" hidden>
+      </div>
+    </section>
+
+    <!-- KPI -->
+    <section class="kpis" aria-label="Indicatori chiave">
+      <article class="kpi-card">
+        <span class="kpi-label">Totale lead</span>
+        <span class="kpi-value" id="kpi-total">–</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Fanno ADS</span>
+        <span class="kpi-value accent" id="kpi-ads">–</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Lead azionabili</span>
+        <span class="kpi-value success" id="kpi-actionable">–</span>
+        <span class="kpi-hint">ADS + email + MX</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">adScore medio</span>
+        <span class="kpi-value" id="kpi-score">–</span>
+      </article>
+    </section>
+
+    <!-- Filtri -->
+    <section class="filters" aria-label="Filtri">
+      <div class="filter-group grow">
+        <label for="f-search">Cerca dominio</label>
+        <input type="search" id="f-search" placeholder="es. rossi-arredamenti.it" autocomplete="off">
+      </div>
+
+      <div class="filter-group">
+        <label for="f-channel">Canale</label>
+        <select id="f-channel">
+          <option value="all">Tutti</option>
+          <option value="meta">Meta</option>
+          <option value="google">Google</option>
+          <option value="both">Entrambi</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-minscore">Min adScore: <span id="f-minscore-val">0</span></label>
+        <input type="range" id="f-minscore" min="0" max="100" step="5" value="0">
+      </div>
+
+      <div class="filter-group toggles">
+        <label class="toggle">
+          <input type="checkbox" id="f-ads">
+          <span class="toggle-track" aria-hidden="true"></span>
+          <span>Solo chi fa ADS</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="f-email">
+          <span class="toggle-track" aria-hidden="true"></span>
+          <span>Solo con email</span>
+        </label>
+      </div>
+
+      <div class="filter-group actions">
+        <button class="btn btn-secondary" id="btn-export" type="button">Esporta CSV</button>
+      </div>
+    </section>
+
+    <!-- Tabella -->
+    <section class="table-card">
+      <div class="table-meta">
+        <span id="row-count">–</span>
+      </div>
+      <div class="table-scroll">
+        <table id="leads-table">
+          <thead>
+            <tr>
+              <th data-sort="domain" class="sortable" scope="col">Domain <span class="sort-arrow" aria-hidden="true"></span></th>
+              <th scope="col">Canale</th>
+              <th data-sort="adScore" class="sortable" scope="col">Score <span class="sort-arrow" aria-hidden="true"></span></th>
+              <th scope="col">Email</th>
+              <th scope="col">MX</th>
+              <th scope="col">Signals</th>
+            </tr>
+          </thead>
+          <tbody id="leads-tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" hidden>
+        <p>Nessun lead corrisponde ai filtri selezionati.</p>
+        <p class="empty-hint">Prova ad allentare i filtri o a caricare un altro file.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Alchemyx lead-gen · dashboard statica, nessun dato lascia il tuo browser</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

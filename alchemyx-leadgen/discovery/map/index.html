@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alchemyx — Trova lead sulla mappa</title>
+
+  <!-- Leaflet + Leaflet.draw da CDN pubblico (versioni pinnate).
+       Questa è una pagina locale con accesso a internet, non un artefatto sandbox. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" crossorigin="">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="layout">
+
+    <!-- Pannello laterale: categoria, azioni, risultati -->
+    <aside class="panel">
+      <header class="panel-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">Ax</div>
+          <div>
+            <h1>Trova lead (mappa)</h1>
+            <p class="subtitle">OpenStreetMap · Overpass API · gratuito</p>
+          </div>
+        </div>
+        <a class="back-link" href="../../dashboard/index.html" title="Torna alla dashboard">← Dashboard</a>
+      </header>
+
+      <section class="controls">
+        <label for="preset-area">Area rapida (comune)</label>
+        <select id="preset-area" aria-label="Area rapida: scegli un comune preimpostato"></select>
+
+        <label for="category" class="spaced">Categoria di attività</label>
+        <select id="category" aria-label="Categoria di attività"></select>
+
+        <p class="hint">
+          Scegli un'<strong>area rapida</strong> oppure disegna un <strong>rettangolo</strong>
+          (o poligono) sulla mappa con gli strumenti in alto a sinistra, poi cerca.
+          In alternativa usa la vista corrente.
+        </p>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btn-search" type="button">🔍 Cerca attività</button>
+          <button class="btn btn-secondary" id="btn-search-view" type="button">Cerca in questa vista</button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite">
+          <span class="spinner" id="spinner" hidden aria-hidden="true"></span>
+          <span id="status-text">Pronto. Disegna un'area e scegli una categoria.</span>
+        </div>
+      </section>
+
+      <section class="results">
+        <div class="results-meta">
+          <span id="results-count">Nessuna ricerca effettuata</span>
+        </div>
+        <div class="results-scroll">
+          <table id="results-table" hidden>
+            <thead>
+              <tr><th scope="col">Attività</th><th scope="col">Dominio</th></tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+          <p class="empty" id="results-empty">
+            I risultati con sito web compariranno qui e come marker sulla mappa.
+          </p>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <!-- One-click: disponibile solo quando la pagina è servita dal
+             server locale Node (LEAD GEN app) che espone /api/detect. -->
+        <div class="qualify" id="qualify-box" hidden>
+          <button class="btn btn-primary btn-wide" id="btn-qualify" type="button" disabled>
+            🔎 Cerca e qualifica (ADS + email)
+          </button>
+          <div class="qualify-progress" id="qualify-progress" hidden>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" id="qualify-fill"></div>
+            </div>
+            <span class="qualify-text" id="qualify-text" role="status" aria-live="polite"></span>
+          </div>
+          <a class="btn btn-secondary btn-wide" id="btn-open-dashboard" href="../../dashboard/" hidden>
+            📊 Apri dashboard
+          </a>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-download" type="button" disabled>⬇️ Scarica domains.txt</button>
+        <button class="btn btn-secondary" id="btn-copy" type="button" disabled>📋 Copia domini</button>
+        <p class="footnote" id="footnote-offline" hidden>
+          💡 Avvia l'app <strong>LEAD GEN</strong> per la ricerca in un clic
+          ("Cerca e qualifica"), oppure scarica la lista e lancia il rilevatore:
+          salva <code>domains.txt</code> in <code>discovery/output/</code> e dai i domini
+          in pasto a <code>node src/index.js</code>.
+        </p>
+        <p class="footnote" id="footnote-online" hidden>
+          Con <strong>Cerca e qualifica</strong> i domini trovati vengono analizzati
+          (ADS + email + MX) e la dashboard si aggiorna da sola. In alternativa
+          puoi sempre scaricare <code>domains.txt</code>.
+        </p>
+      </footer>
+    </aside>
+
+    <!-- Mappa a tutta pagina -->
+    <main id="map" aria-label="Mappa per la ricerca di attività"></main>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>

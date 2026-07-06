@@ -1,0 +1,9 @@
+# Esempio - sostituisci con i tuoi domini target (uno per riga)
+arredamentirossi.it
+pasticceriabianchi.it
+studiodentisticoverdi.it
+agenziaimmobiliaremilano.it
+ecommercemodaitalia.it
+officinamotorsport.it
+webagencytorino.it
+palestrafitclub.it

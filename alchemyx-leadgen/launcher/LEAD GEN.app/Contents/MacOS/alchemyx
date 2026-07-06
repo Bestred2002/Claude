@@ -1,0 +1,160 @@
+#!/bin/bash
+# LEAD GEN (Alchemyx) — launcher macOS della dashboard lead-gen.
+#
+# Avvia un piccolo server HTTP locale con radice nella cartella
+# alchemyx-leadgen e apre il browser su http://localhost:<porta>/dashboard/
+#
+# Preferisce Node 18+ (server/server.js: abilita "Cerca e qualifica" in un
+# clic dalla mappa), con fallback su python3 (solo file statici).
+# Zero dipendenze: usa solo bash, node/python3 e curl.
+
+set -u
+
+# ---------------------------------------------------------------------------
+# 1) Trova la cartella alchemyx-leadgen.
+#    Il bundle vive in alchemyx-leadgen/launcher/LEAD GEN.app, quindi da
+#    questo script (Contents/MacOS/) risaliamo:
+#    MacOS -> Contents -> LEAD GEN.app -> launcher -> alchemyx-leadgen
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../../../.." 2>/dev/null && pwd)"
+
+if [ -z "${ROOT_DIR:-}" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    # Fallback: l'utente potrebbe aver copiato la .app altrove.
+    # Cerchiamo alchemyx-leadgen/dashboard/index.html risalendo le cartelle.
+    ROOT_DIR=""
+    SEARCH_DIR="$SCRIPT_DIR"
+    while [ "$SEARCH_DIR" != "/" ]; do
+        if [ -f "$SEARCH_DIR/alchemyx-leadgen/dashboard/index.html" ]; then
+            ROOT_DIR="$SEARCH_DIR/alchemyx-leadgen"
+            break
+        fi
+        if [ -f "$SEARCH_DIR/dashboard/index.html" ] && [ "$(basename "$SEARCH_DIR")" = "alchemyx-leadgen" ]; then
+            ROOT_DIR="$SEARCH_DIR"
+            break
+        fi
+        SEARCH_DIR="$(dirname "$SEARCH_DIR")"
+    done
+fi
+
+# Fallback 2: percorso salvato da un avvio precedente.
+CONFIG_FILE="$HOME/.config/alchemyx/leadgen-path"
+if { [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; } && [ -f "$CONFIG_FILE" ]; then
+    SAVED="$(cat "$CONFIG_FILE" 2>/dev/null)"
+    if [ -n "$SAVED" ] && [ -f "$SAVED/dashboard/index.html" ]; then
+        ROOT_DIR="$SAVED"
+    fi
+fi
+
+# Fallback 3: cerca il progetto nelle posizioni comuni (profondità limitata).
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    for BASE in "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads" "$HOME"; do
+        [ -d "$BASE" ] || continue
+        while IFS= read -r CANDIDATE; do
+            if [ -f "$CANDIDATE/dashboard/index.html" ]; then
+                ROOT_DIR="$CANDIDATE"
+                break
+            fi
+        done < <(find "$BASE" -maxdepth 4 -type d -name "alchemyx-leadgen" 2>/dev/null)
+        [ -n "$ROOT_DIR" ] && [ -f "$ROOT_DIR/dashboard/index.html" ] && break
+    done
+fi
+
+# Fallback 4: chiedi all'utente di indicare la cartella del progetto.
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    CHOSEN="$(osascript -e 'POSIX path of (choose folder with prompt "Non trovo il progetto LEAD GEN.\nSeleziona la cartella del progetto scaricato (quella che contiene alchemyx-leadgen, oppure alchemyx-leadgen stessa).")' 2>/dev/null)"
+    CHOSEN="${CHOSEN%/}"
+    if [ -n "$CHOSEN" ]; then
+        if [ -f "$CHOSEN/dashboard/index.html" ]; then
+            ROOT_DIR="$CHOSEN"
+        elif [ -f "$CHOSEN/alchemyx-leadgen/dashboard/index.html" ]; then
+            ROOT_DIR="$CHOSEN/alchemyx-leadgen"
+        fi
+    fi
+fi
+
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    # Nessuna dashboard trovata: mostra una finestra di errore e termina.
+    osascript -e 'display dialog "Impossibile trovare la dashboard Alchemyx (alchemyx-leadgen/dashboard/index.html).\n\nScarica il progetto e riprova, oppure riavvia LEAD GEN e seleziona la cartella del progetto quando richiesto." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# Percorso valido: ricordalo per i prossimi avvii (l'app può stare ovunque).
+mkdir -p "$(dirname "$CONFIG_FILE")" 2>/dev/null && printf '%s\n' "$ROOT_DIR" > "$CONFIG_FILE" 2>/dev/null
+
+# ---------------------------------------------------------------------------
+# 2) Scegli il server: Node (preferito: abilita "Cerca e qualifica" one-click)
+#    con fallback su Python (solo file statici, come prima).
+# ---------------------------------------------------------------------------
+NODE_BIN=""
+if command -v node >/dev/null 2>&1 && [ -f "$ROOT_DIR/server/server.js" ]; then
+    NODE_BIN="node"
+fi
+
+PYTHON_BIN=""
+if command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+fi
+
+if [ -z "$NODE_BIN" ] && [ -z "$PYTHON_BIN" ]; then
+    osascript -e 'display dialog "Né Node.js né Python 3 trovati. Installa Node 18+ (consigliato, abilita la ricerca in un clic) da nodejs.org, oppure gli strumenti da riga di comando di Xcode (xcode-select --install) per Python." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 3) Trova una porta libera partendo da 8347.
+#    Se sulla porta risponde già un server che serve la NOSTRA dashboard
+#    (avvio precedente), riusiamolo: apriamo solo il browser.
+# ---------------------------------------------------------------------------
+PORT=8347
+FOUND=""
+while [ "$PORT" -lt 8400 ]; do
+    if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
+        # La porta è occupata: è il nostro server di un avvio precedente?
+        # (marker /api/ping = server Node; dashboard = server Python statico)
+        if curl -s --max-time 1 "http://localhost:$PORT/api/ping" | grep -q "alchemyx-leadgen" \
+           || curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
+            FOUND="reuse"
+            break
+        fi
+        # Occupata da altro: prova la porta successiva.
+        PORT=$((PORT + 1))
+    else
+        FOUND="free"
+        break
+    fi
+done
+
+if [ -z "$FOUND" ]; then
+    osascript -e 'display dialog "Nessuna porta libera trovata (8347-8399)." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 4) Avvia il server (se serve) e apri il browser.
+# ---------------------------------------------------------------------------
+if [ "$FOUND" = "free" ]; then
+    # CWD = radice alchemyx-leadgen: così sono serviti sia /dashboard/
+    # che /output/leads.json (la dashboard li carica automaticamente).
+    cd "$ROOT_DIR" || exit 1
+    if [ -n "$NODE_BIN" ]; then
+        # Server Node: file statici + API /api/detect ("Cerca e qualifica"
+        # dalla mappa, dashboard che si aggiorna da sola).
+        PORT="$PORT" nohup "$NODE_BIN" "$ROOT_DIR/server/server.js" >/dev/null 2>&1 &
+    else
+        # Fallback Python: solo file statici (il rilevatore va lanciato a mano).
+        nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+    fi
+
+    # Aspetta (max ~5 secondi) che il server sia pronto.
+    for _ in $(seq 1 50); do
+        if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
+            break
+        fi
+        sleep 0.1
+    done
+fi
+
+open "http://localhost:$PORT/dashboard/"

@@ -1,0 +1,8 @@
+# Lista di soppressione (opt-out): email o domini da NON contattare MAI.
+# Una voce per riga. Le righe vuote e quelle che iniziano con # vengono ignorate.
+# - Una email sopprime solo quell'indirizzo, es: info@esempio.it
+# - Un dominio sopprime tutti gli indirizzi di quel dominio, es: esempio.it
+#
+# Esempi (rimuovi o sostituisci con le tue voci reali):
+optout@esempio-optout.it
+dominio-da-escludere.example

@@ -1,0 +1,32 @@
+# Esempio di input grezzo misto per Alchemyx discovery.
+# Righe vuote e righe che iniziano con # vengono ignorate.
+
+# URL completi
+https://www.pasticceriarossi.it/prodotti/torte?utm_source=fb
+http://shop.modamilano.it/collezione-estate
+
+# Domini nudi
+www.idraulicabianchi.it
+osteriadelborgo.com
+StudioLegaleVerdi.IT
+
+# Formato "Azienda - sito"
+Pizzeria Da Gino - dagino-napoli.it
+Falegnameria Fratelli Conti — www.falegnameriaconti.it
+Centro Estetico Luna: https://esteticaluna.it/contatti
+
+# Email (si estrae il dominio)
+info@agriturismoilpoggio.it
+
+# Junk / social: questi devono essere SCARTATI dal normalizzatore
+https://www.facebook.com/pasticceriarossi
+https://l.facebook.com/l.php?u=https%3A%2F%2Fwww.arredamentifuturo.it%2F
+https://www.instagram.com/modamilano_official/
+https://bit.ly/3xYzAbC
+https://wa.me/393331234567
+https://www.google.com/maps/place/qualcosa
+https://www.youtube.com/@canaleaziendale
+
+# Duplicati (devono comparire una sola volta in output)
+https://pasticceriarossi.it
+PASTICCERIAROSSI.IT
