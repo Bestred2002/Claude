@@ -1,0 +1,158 @@
+{
+  "servizi": {
+    "label": "Aziende di servizi",
+    "group": "Gruppi principali",
+    "filters": [["office"], ["craft"]]
+  },
+  "retail": {
+    "label": "Retail / negozi",
+    "group": "Gruppi principali",
+    "filters": [["shop"]]
+  },
+  "ristorazione": {
+    "label": "Ristorazione / ospitalità",
+    "group": "Gruppi principali",
+    "filters": [
+      ["amenity", "restaurant"],
+      ["amenity", "bar"],
+      ["amenity", "cafe"],
+      ["amenity", "fast_food"],
+      ["amenity", "pub"],
+      ["amenity", "ice_cream"],
+      ["tourism", "hotel"],
+      ["tourism", "guest_house"],
+      ["tourism", "apartment"],
+      ["tourism", "hostel"]
+    ]
+  },
+  "servizi_professionali": {
+    "label": "Servizi professionali",
+    "group": "Gruppi principali",
+    "filters": [
+      ["office", "estate_agent"],
+      ["office", "lawyer"],
+      ["office", "accountant"],
+      ["office", "insurance"],
+      ["office", "financial"],
+      ["office", "company"],
+      ["office", "it"],
+      ["office", "architect"],
+      ["office", "engineer"],
+      ["amenity", "dentist"],
+      ["healthcare"]
+    ]
+  },
+  "fitness_benessere": {
+    "label": "Fitness / benessere / beauty",
+    "group": "Gruppi principali",
+    "filters": [
+      ["leisure", "fitness_centre"],
+      ["leisure", "sports_centre"],
+      ["shop", "beauty"],
+      ["shop", "hairdresser"],
+      ["shop", "massage"],
+      ["amenity", "spa"]
+    ]
+  },
+
+  "ristoranti": {
+    "label": "Ristoranti",
+    "group": "Categorie specifiche",
+    "filters": [["amenity", "restaurant"]]
+  },
+  "bar_caffe": {
+    "label": "Bar e caffè",
+    "group": "Categorie specifiche",
+    "filters": [["amenity", "bar"], ["amenity", "cafe"]]
+  },
+  "gelaterie": {
+    "label": "Gelaterie",
+    "group": "Categorie specifiche",
+    "filters": [["amenity", "ice_cream"]]
+  },
+  "hotel": {
+    "label": "Hotel e strutture ricettive",
+    "group": "Categorie specifiche",
+    "filters": [["tourism", "hotel"], ["tourism", "guest_house"]]
+  },
+  "agenzie_immobiliari": {
+    "label": "Agenzie immobiliari",
+    "group": "Categorie specifiche",
+    "filters": [["office", "estate_agent"]]
+  },
+  "avvocati": {
+    "label": "Studi legali / avvocati",
+    "group": "Categorie specifiche",
+    "filters": [["office", "lawyer"]]
+  },
+  "commercialisti": {
+    "label": "Commercialisti / contabili",
+    "group": "Categorie specifiche",
+    "filters": [["office", "accountant"]]
+  },
+  "assicurazioni": {
+    "label": "Agenzie assicurative",
+    "group": "Categorie specifiche",
+    "filters": [["office", "insurance"]]
+  },
+  "dentisti": {
+    "label": "Dentisti / studi dentistici",
+    "group": "Categorie specifiche",
+    "filters": [["amenity", "dentist"]]
+  },
+  "palestre": {
+    "label": "Palestre",
+    "group": "Categorie specifiche",
+    "filters": [["leisure", "fitness_centre"]]
+  },
+  "parrucchieri": {
+    "label": "Parrucchieri",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "hairdresser"]]
+  },
+  "centri_estetici": {
+    "label": "Centri estetici",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "beauty"], ["shop", "massage"]]
+  },
+  "negozi_abbigliamento": {
+    "label": "Negozi di abbigliamento",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "clothes"], ["shop", "shoes"]]
+  },
+  "negozi_arredamento": {
+    "label": "Negozi di arredamento",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "furniture"], ["shop", "interior_decoration"]]
+  },
+  "ottici": {
+    "label": "Ottici",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "optician"]]
+  },
+  "elettronica": {
+    "label": "Negozi di elettronica",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "electronics"], ["shop", "computer"], ["shop", "mobile_phone"]]
+  },
+  "officine_auto": {
+    "label": "Officine e carrozzerie",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "car_repair"]]
+  },
+  "concessionarie": {
+    "label": "Concessionarie auto",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "car"]]
+  },
+  "fotografi": {
+    "label": "Fotografi",
+    "group": "Categorie specifiche",
+    "filters": [["craft", "photographer"], ["shop", "photo"]]
+  },
+  "agenzie_viaggi": {
+    "label": "Agenzie di viaggi",
+    "group": "Categorie specifiche",
+    "filters": [["shop", "travel_agency"]]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "milano": { "label": "Milano", "group": "Città chiave", "lat": 45.4642, "lon": 9.19, "zoom": 11, "bbox": [45.386, 9.04, 45.536, 9.28] },
+  "torino": { "label": "Torino", "group": "Città chiave", "lat": 45.0703, "lon": 7.6869, "zoom": 12, "bbox": [44.99, 7.58, 45.14, 7.77] },
+  "roma": { "label": "Roma", "group": "Città chiave", "lat": 41.8933, "lon": 12.4829, "zoom": 11, "bbox": [41.8, 12.4, 41.99, 12.6] },
+  "firenze": { "label": "Firenze", "group": "Città chiave", "lat": 43.7696, "lon": 11.2558, "zoom": 12, "bbox": [43.72, 11.15, 43.83, 11.34] },
+
+  "bergamo": { "label": "Bergamo", "group": "Lombardia", "lat": 45.6983, "lon": 9.6773, "zoom": 13, "bbox": [45.66, 9.62, 45.73, 9.72] },
+  "monza": { "label": "Monza", "group": "Lombardia", "lat": 45.5845, "lon": 9.2744, "zoom": 13, "bbox": [45.55, 9.23, 45.62, 9.32] },
+  "como": { "label": "Como", "group": "Lombardia", "lat": 45.808, "lon": 9.0852, "zoom": 13, "bbox": [45.77, 9.03, 45.84, 9.13] },
+  "brescia": { "label": "Brescia", "group": "Lombardia", "lat": 45.5416, "lon": 10.2118, "zoom": 12, "bbox": [45.49, 10.15, 45.6, 10.27] },
+
+  "laquila": { "label": "L'Aquila", "group": "Abruzzo", "lat": 42.3498, "lon": 13.3995, "zoom": 13, "bbox": [42.3, 13.32, 42.4, 13.48] },
+  "pescara": { "label": "Pescara", "group": "Abruzzo", "lat": 42.4618, "lon": 14.2161, "zoom": 13, "bbox": [42.42, 14.16, 42.5, 14.27] },
+  "chieti": { "label": "Chieti", "group": "Abruzzo", "lat": 42.3512, "lon": 14.1675, "zoom": 13, "bbox": [42.32, 14.12, 42.39, 14.21] },
+  "teramo": { "label": "Teramo", "group": "Abruzzo", "lat": 42.6589, "lon": 13.7044, "zoom": 13, "bbox": [42.62, 13.65, 42.7, 13.76] },
+
+  "ancona": { "label": "Ancona", "group": "Marche", "lat": 43.6158, "lon": 13.5189, "zoom": 13, "bbox": [43.55, 13.44, 43.65, 13.58] },
+  "pesaro": { "label": "Pesaro", "group": "Marche", "lat": 43.9102, "lon": 12.9133, "zoom": 13, "bbox": [43.86, 12.85, 43.95, 12.97] },
+  "macerata": { "label": "Macerata", "group": "Marche", "lat": 43.2999, "lon": 13.4534, "zoom": 13, "bbox": [43.27, 13.4, 43.33, 13.51] },
+  "ascoli_piceno": { "label": "Ascoli Piceno", "group": "Marche", "lat": 42.8536, "lon": 13.5749, "zoom": 13, "bbox": [42.82, 13.52, 42.89, 13.63] },
+  "fermo": { "label": "Fermo", "group": "Marche", "lat": 43.1607, "lon": 13.7184, "zoom": 13, "bbox": [43.13, 13.67, 43.2, 13.77] },
+
+  "bari": { "label": "Bari", "group": "Puglia", "lat": 41.1171, "lon": 16.8719, "zoom": 12, "bbox": [41.06, 16.78, 41.16, 16.96] },
+  "lecce": { "label": "Lecce", "group": "Puglia", "lat": 40.3516, "lon": 18.1718, "zoom": 13, "bbox": [40.31, 18.11, 40.4, 18.23] },
+  "taranto": { "label": "Taranto", "group": "Puglia", "lat": 40.4644, "lon": 17.247, "zoom": 13, "bbox": [40.41, 17.18, 40.52, 17.31] },
+  "foggia": { "label": "Foggia", "group": "Puglia", "lat": 41.4622, "lon": 15.5446, "zoom": 13, "bbox": [41.42, 15.49, 41.5, 15.6] },
+  "brindisi": { "label": "Brindisi", "group": "Puglia", "lat": 40.6327, "lon": 17.9418, "zoom": 13, "bbox": [40.59, 17.88, 40.67, 18.0] },
+  "andria": { "label": "Andria", "group": "Puglia", "lat": 41.227, "lon": 16.2965, "zoom": 13, "bbox": [41.19, 16.25, 41.26, 16.35] },
+
+  "palermo": { "label": "Palermo", "group": "Sicilia", "lat": 38.1157, "lon": 13.3615, "zoom": 12, "bbox": [38.06, 13.26, 38.22, 13.45] },
+  "catania": { "label": "Catania", "group": "Sicilia", "lat": 37.5079, "lon": 15.083, "zoom": 12, "bbox": [37.44, 15.0, 37.55, 15.12] },
+  "messina": { "label": "Messina", "group": "Sicilia", "lat": 38.1938, "lon": 15.554, "zoom": 12, "bbox": [38.13, 15.48, 38.27, 15.6] },
+  "siracusa": { "label": "Siracusa", "group": "Sicilia", "lat": 37.0755, "lon": 15.2866, "zoom": 13, "bbox": [37.03, 15.22, 37.12, 15.32] },
+  "ragusa": { "label": "Ragusa", "group": "Sicilia", "lat": 36.9264, "lon": 14.7255, "zoom": 13, "bbox": [36.89, 14.67, 36.96, 14.78] },
+  "trapani": { "label": "Trapani", "group": "Sicilia", "lat": 38.0176, "lon": 12.5365, "zoom": 13, "bbox": [37.98, 12.48, 38.05, 12.59] },
+  "agrigento": { "label": "Agrigento", "group": "Sicilia", "lat": 37.3111, "lon": 13.5765, "zoom": 13, "bbox": [37.27, 13.52, 37.35, 13.63] },
+  "caltanissetta": { "label": "Caltanissetta", "group": "Sicilia", "lat": 37.4901, "lon": 14.0629, "zoom": 13, "bbox": [37.45, 14.01, 37.53, 14.11] },
+  "enna": { "label": "Enna", "group": "Sicilia", "lat": 37.5671, "lon": 14.2795, "zoom": 13, "bbox": [37.53, 14.23, 37.6, 14.33] }
+}
