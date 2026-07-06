@@ -1,0 +1,103 @@
+#!/bin/bash
+# LEAD GEN (Alchemyx) — launcher macOS della dashboard lead-gen.
+#
+# Avvia un piccolo server HTTP locale (python3) con radice nella cartella
+# alchemyx-leadgen, così la dashboard può caricare ../output/leads.json,
+# poi apre il browser su http://localhost:<porta>/dashboard/
+#
+# Zero dipendenze: usa solo bash, python3 (preinstallato su macOS) e curl.
+
+set -u
+
+# ---------------------------------------------------------------------------
+# 1) Trova la cartella alchemyx-leadgen.
+#    Il bundle vive in alchemyx-leadgen/launcher/LEAD GEN.app, quindi da
+#    questo script (Contents/MacOS/) risaliamo:
+#    MacOS -> Contents -> LEAD GEN.app -> launcher -> alchemyx-leadgen
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../../../.." 2>/dev/null && pwd)"
+
+if [ -z "${ROOT_DIR:-}" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    # Fallback: l'utente potrebbe aver copiato la .app altrove.
+    # Cerchiamo alchemyx-leadgen/dashboard/index.html risalendo le cartelle.
+    ROOT_DIR=""
+    SEARCH_DIR="$SCRIPT_DIR"
+    while [ "$SEARCH_DIR" != "/" ]; do
+        if [ -f "$SEARCH_DIR/alchemyx-leadgen/dashboard/index.html" ]; then
+            ROOT_DIR="$SEARCH_DIR/alchemyx-leadgen"
+            break
+        fi
+        if [ -f "$SEARCH_DIR/dashboard/index.html" ] && [ "$(basename "$SEARCH_DIR")" = "alchemyx-leadgen" ]; then
+            ROOT_DIR="$SEARCH_DIR"
+            break
+        fi
+        SEARCH_DIR="$(dirname "$SEARCH_DIR")"
+    done
+fi
+
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    # Nessuna dashboard trovata: mostra una finestra di errore e termina.
+    osascript -e 'display dialog "Impossibile trovare la dashboard Alchemyx (alchemyx-leadgen/dashboard/index.html).\n\nSposta LEAD GEN.app dentro la cartella alchemyx-leadgen/launcher/ del progetto e riprova." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 2) Scegli l'interprete Python (python3 su macOS moderno, python in fallback).
+# ---------------------------------------------------------------------------
+PYTHON_BIN=""
+if command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+else
+    osascript -e 'display dialog "Python 3 non trovato. Installa gli strumenti da riga di comando di Xcode (xcode-select --install) e riprova." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 3) Trova una porta libera partendo da 8347.
+#    Se sulla porta risponde già un server che serve la NOSTRA dashboard
+#    (avvio precedente), riusiamolo: apriamo solo il browser.
+# ---------------------------------------------------------------------------
+PORT=8347
+FOUND=""
+while [ "$PORT" -lt 8400 ]; do
+    if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
+        # La porta è occupata: è il nostro server di un avvio precedente?
+        if curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
+            FOUND="reuse"
+            break
+        fi
+        # Occupata da altro: prova la porta successiva.
+        PORT=$((PORT + 1))
+    else
+        FOUND="free"
+        break
+    fi
+done
+
+if [ -z "$FOUND" ]; then
+    osascript -e 'display dialog "Nessuna porta libera trovata (8347-8399)." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 4) Avvia il server (se serve) e apri il browser.
+# ---------------------------------------------------------------------------
+if [ "$FOUND" = "free" ]; then
+    # CWD = radice alchemyx-leadgen: così sono serviti sia /dashboard/
+    # che /output/leads.json (la dashboard li carica automaticamente).
+    cd "$ROOT_DIR" || exit 1
+    nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+
+    # Aspetta (max ~5 secondi) che il server sia pronto.
+    for _ in $(seq 1 50); do
+        if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
+            break
+        fi
+        sleep 0.1
+    done
+fi
+
+open "http://localhost:$PORT/dashboard/"

@@ -1,0 +1,19 @@
+[Desktop Entry]
+# LEAD GEN (Alchemyx) — voce di menu / icona desktop per Linux.
+#
+# ISTRUZIONI:
+# 1. Sostituisci /PERCORSO/DEL/PROGETTO qui sotto (2 volte) con il percorso
+#    assoluto reale della cartella che contiene alchemyx-leadgen,
+#    ad esempio /home/tuonome/Claude
+# 2. Copia questo file in ~/.local/share/applications/
+# 3. (Facoltativo) rendilo eseguibile: chmod +x alchemyx.desktop
+Version=1.0
+Type=Application
+Name=LEAD GEN
+GenericName=Dashboard lead-gen
+Comment=Avvia la dashboard lead-gen Alchemyx nel browser
+Exec=bash "/PERCORSO/DEL/PROGETTO/alchemyx-leadgen/launcher/Avvia LEAD GEN.command"
+Icon=/PERCORSO/DEL/PROGETTO/alchemyx-leadgen/launcher/assets/icon-256.png
+Terminal=false
+Categories=Office;Network;
+StartupNotify=false
