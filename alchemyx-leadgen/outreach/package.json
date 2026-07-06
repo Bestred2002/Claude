@@ -1,0 +1,15 @@
+{
+  "name": "alchemyx-outreach",
+  "version": "1.0.0",
+  "description": "Genera bozze email di outreach personalizzate e GDPR-compliant dai lead qualificati (nessun invio).",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "generate": "node src/generate.js"
+  },
+  "dependencies": {},
+  "license": "UNLICENSED"
+}

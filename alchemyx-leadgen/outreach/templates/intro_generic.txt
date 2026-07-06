@@ -1,0 +1,17 @@
+Subject: {{azienda_target}} — un'idea per la vostra pubblicità online
+
+Buongiorno,
+
+visitando {{dominio}} ho notato che investite già in pubblicità online ({{canale_ads}}): segno che il digitale è una leva importante per la vostra attività.
+
+Mi chiamo {{mittente_nome}} e aiutiamo aziende come la vostra a ottenere di più dallo stesso budget: strategia, creatività e pagine di destinazione ottimizzate per abbassare il costo per contatto.
+
+Se vi fa piacere, posso preparare una breve analisi gratuita della vostra presenza pubblicitaria, senza alcun impegno. Basta rispondere a questa email.
+
+Grazie per l'attenzione,
+{{firma}}
+
+--
+{{azienda}} — {{indirizzo_postale}}
+Questa email è stata inviata a un contatto aziendale pubblico per finalità B2B (legittimo interesse).
+Se non desideri ricevere altre comunicazioni, rispondi STOP o clicca qui: {{unsubscribe_url}}

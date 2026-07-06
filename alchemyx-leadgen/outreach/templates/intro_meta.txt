@@ -1,0 +1,17 @@
+Subject: {{azienda_target}} — un'idea per le vostre campagne su Meta
+
+Buongiorno,
+
+visitando {{dominio}} ho notato che state già investendo in pubblicità su Meta (Facebook/Instagram). Segno che il marketing digitale è già una leva per voi.
+
+Mi chiamo {{mittente_nome}} e aiutiamo aziende come la vostra a ottenere di più dallo stesso budget pubblicitario: creatività, pubblici e landing page ottimizzati per abbassare il costo per contatto.
+
+Se vi interessa, posso preparare una breve analisi gratuita delle vostre campagne Meta, senza alcun impegno. Basta rispondere a questa email.
+
+Grazie per l'attenzione e buon lavoro,
+{{firma}}
+
+--
+{{azienda}} — {{indirizzo_postale}}
+Questa email è stata inviata a un contatto aziendale pubblico per finalità B2B (legittimo interesse).
+Se non desideri ricevere altre comunicazioni, rispondi STOP o clicca qui: {{unsubscribe_url}}

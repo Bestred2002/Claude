@@ -1,0 +1,17 @@
+Subject: {{azienda_target}} — rendere di più con Google Ads
+
+Buongiorno,
+
+dando un'occhiata a {{dominio}} ho visto che avete già campagne attive su Google Ads: ottimo segnale, significa che puntate a farvi trovare da chi vi cerca.
+
+Mi chiamo {{mittente_nome}} e aiutiamo aziende come la vostra a migliorare il rendimento delle campagne di ricerca: parole chiave, annunci e pagine di destinazione ottimizzati per ridurre il costo per clic e aumentare le conversioni.
+
+Se può interessarvi, preparo volentieri una breve analisi gratuita del vostro account, senza impegno. Basta rispondere a questa email.
+
+Grazie e buon lavoro,
+{{firma}}
+
+--
+{{azienda}} — {{indirizzo_postale}}
+Questa email è stata inviata a un contatto aziendale pubblico per finalità B2B (legittimo interesse).
+Se non desideri ricevere altre comunicazioni, rispondi STOP o clicca qui: {{unsubscribe_url}}
