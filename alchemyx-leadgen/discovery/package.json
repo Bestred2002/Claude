@@ -1,0 +1,15 @@
+{
+  "name": "alchemyx-discovery",
+  "version": "1.0.0",
+  "description": "Modulo discovery Alchemyx: raccoglie domini di aziende italiane da fonti gratuite e lecite (OSM/Nominatim, input manuali, link a Meta Ad Library / Google Ads Transparency).",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "discover": "node src/index.js"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}
