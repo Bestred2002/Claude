@@ -1,7 +1,9 @@
 #!/bin/bash
 # Avvia LEAD GEN — alternativa semplice al doppio click su LEAD GEN.app.
 # Avvia un server HTTP locale sulla cartella alchemyx-leadgen e apre
-# la dashboard nel browser. Zero dipendenze (bash + python3 + curl).
+# la dashboard nel browser. Preferisce Node 18+ (server/server.js:
+# "Cerca e qualifica" in un clic dalla mappa), fallback python3
+# (solo file statici). Zero dipendenze (bash + node/python3 + curl).
 
 set -u
 
@@ -56,13 +58,23 @@ fi
 # Percorso valido: ricordalo per i prossimi avvii.
 mkdir -p "$(dirname "$CONFIG_FILE")" 2>/dev/null && printf '%s\n' "$ROOT_DIR" > "$CONFIG_FILE" 2>/dev/null
 
-# Interprete Python: python3 (macOS/Linux moderni) o python in fallback.
+# Server: Node (preferito, abilita "Cerca e qualifica" one-click) con
+# fallback su Python (solo file statici, come prima).
+NODE_BIN=""
+if command -v node >/dev/null 2>&1 && [ -f "$ROOT_DIR/server/server.js" ]; then
+    NODE_BIN="node"
+fi
+
+PYTHON_BIN=""
 if command -v python3 >/dev/null 2>&1; then
     PYTHON_BIN="python3"
 elif command -v python >/dev/null 2>&1; then
     PYTHON_BIN="python"
-else
-    echo "ERRORE: Python 3 non trovato."
+fi
+
+if [ -z "$NODE_BIN" ] && [ -z "$PYTHON_BIN" ]; then
+    echo "ERRORE: né Node.js né Python 3 trovati."
+    echo "Installa Node 18+ (consigliato: abilita la ricerca in un clic) da https://nodejs.org"
     read -r -p "Premi Invio per chiudere..."
     exit 1
 fi
@@ -72,7 +84,9 @@ PORT=8347
 FOUND=""
 while [ "$PORT" -lt 8400 ]; do
     if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
-        if curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
+        # Marker /api/ping = nostro server Node; dashboard = server Python statico.
+        if curl -s --max-time 1 "http://localhost:$PORT/api/ping" | grep -q "alchemyx-leadgen" \
+           || curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
             FOUND="reuse"
             break
         fi
@@ -93,7 +107,13 @@ if [ "$FOUND" = "free" ]; then
     # CWD = radice alchemyx-leadgen: serve sia /dashboard/ che /output/leads.json.
     cd "$ROOT_DIR" || exit 1
     echo "Avvio server LEAD GEN su http://localhost:$PORT/ ..."
-    nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+    if [ -n "$NODE_BIN" ]; then
+        # Server Node: file statici + API ("Cerca e qualifica" dalla mappa).
+        PORT="$PORT" nohup "$NODE_BIN" "$ROOT_DIR/server/server.js" >/dev/null 2>&1 &
+    else
+        echo "(Node non trovato: server statico Python, senza ricerca in un clic)"
+        nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+    fi
     for _ in $(seq 1 50); do
         if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
             break

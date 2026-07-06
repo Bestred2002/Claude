@@ -24,10 +24,24 @@
         <span class="dot" aria-hidden="true"></span>
         <span id="data-source-label">Caricamento…</span>
       </div>
+      <button class="btn btn-secondary btn-refresh" id="btn-refresh" type="button"
+              title="Ricarica i lead da output/leads.json">🔄 Aggiorna</button>
     </div>
   </header>
 
   <main class="container">
+
+    <!-- Banner "analisi in corso": visibile solo quando il server locale
+         Node (LEAD GEN app) sta eseguendo un job di rilevamento. -->
+    <section class="live-banner" id="live-banner" hidden aria-live="polite">
+      <div class="live-banner-row">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="live-text">Analisi in corso…</span>
+      </div>
+      <div class="live-track" aria-hidden="true">
+        <div class="live-fill" id="live-fill"></div>
+      </div>
+    </section>
 
     <!-- Zona caricamento file: input + drag & drop -->
     <section class="dropzone" id="dropzone" aria-label="Carica il file leads.json">

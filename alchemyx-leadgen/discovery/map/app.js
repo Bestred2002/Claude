@@ -309,11 +309,25 @@
     empty: document.getElementById('results-empty'),
     category: document.getElementById('category'),
     presetArea: document.getElementById('preset-area'),
+    qualifyBox: document.getElementById('qualify-box'),
+    qualify: document.getElementById('btn-qualify'),
+    qualifyProgress: document.getElementById('qualify-progress'),
+    qualifyFill: document.getElementById('qualify-fill'),
+    qualifyText: document.getElementById('qualify-text'),
+    openDashboard: document.getElementById('btn-open-dashboard'),
+    footnoteOffline: document.getElementById('footnote-offline'),
+    footnoteOnline: document.getElementById('footnote-online'),
   };
 
   // Domini unici accumulati in tutte le ricerche della sessione.
   const allDomains = new Set();
   let busy = false;
+
+  // true se la pagina è servita dal server locale Node (LEAD GEN app),
+  // che espone /api/detect. Da file:// o da un server statico resta false
+  // e si usa il flusso classico "Scarica domains.txt".
+  let apiAvailable = false;
+  let qualifying = false;
 
   function setStatus(text, { spinning = false, error = false } = {}) {
     els.status.textContent = text;
@@ -463,6 +477,7 @@
     }
     els.download.disabled = allDomains.size === 0;
     els.copy.disabled = allDomains.size === 0;
+    els.qualify.disabled = allDomains.size === 0 || qualifying;
     setStatus(`"${categoryLabel}": ${n} attività, ${m} con sito web. Domini unici in sessione: ${allDomains.size}.`);
   }
 
@@ -546,7 +561,116 @@
     }
   });
 
+  // ------------------------------------------------------------------
+  // "Cerca e qualifica": manda i domini raccolti a POST /api/detect
+  // (server locale Node) e mostra il progresso via GET /api/status.
+  // Disponibile solo quando la pagina è servita dall'app LEAD GEN.
+  // ------------------------------------------------------------------
+  const API_BASE = '../..'; // la pagina vive in /discovery/map/ → API in /api/*
+  const POLL_MS = 1500;
+
+  /** Rileva il server locale: mostra il bottone one-click o il suggerimento. */
+  async function detectApi() {
+    try {
+      const res = await fetch(`${API_BASE}/api/ping`, { cache: 'no-store' });
+      const data = res.ok ? await res.json() : null;
+      apiAvailable = Boolean(data && data.app === 'alchemyx-leadgen');
+    } catch {
+      apiAvailable = false; // file:// o server statico (python): flusso classico
+    }
+    els.qualifyBox.hidden = !apiAvailable;
+    els.footnoteOnline.hidden = !apiAvailable;
+    els.footnoteOffline.hidden = apiAvailable;
+  }
+
+  function setQualifyProgress(done, total, advertisers) {
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    els.qualifyFill.style.width = `${pct}%`;
+    els.qualifyText.className = 'qualify-text';
+    els.qualifyText.textContent =
+      `Analizzati ${done}/${total} — ${advertisers} advertiser trovati`;
+  }
+
+  function qualifyDone(status) {
+    qualifying = false;
+    els.qualify.disabled = allDomains.size === 0;
+    els.qualifyFill.style.width = '100%';
+    els.qualifyText.className = 'qualify-text success';
+    els.qualifyText.textContent =
+      `✅ Fatto: ${status.done}/${status.total} analizzati, ` +
+      `${status.advertisers} advertiser, ${status.actionable} con email+MX. ` +
+      'I lead sono nella dashboard.';
+    els.openDashboard.hidden = false;
+  }
+
+  function qualifyFailed(message) {
+    qualifying = false;
+    els.qualify.disabled = allDomains.size === 0;
+    els.qualifyText.className = 'qualify-text error';
+    els.qualifyText.textContent = `Errore: ${message}`;
+  }
+
+  /** Polling di /api/status finché il job non termina. */
+  function pollStatus() {
+    const timer = setInterval(async () => {
+      let status;
+      try {
+        const res = await fetch(`${API_BASE}/api/status`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        status = await res.json();
+      } catch {
+        clearInterval(timer);
+        qualifyFailed('server locale non più raggiungibile');
+        return;
+      }
+      if (status.running) {
+        setQualifyProgress(status.done, status.total, status.advertisers);
+        return;
+      }
+      clearInterval(timer);
+      if (status.error) qualifyFailed(status.error);
+      else qualifyDone(status);
+    }, POLL_MS);
+  }
+
+  els.qualify.addEventListener('click', async () => {
+    if (qualifying || allDomains.size === 0) return;
+    const domains = [...allDomains].sort();
+
+    qualifying = true;
+    els.qualify.disabled = true;
+    els.openDashboard.hidden = true;
+    els.qualifyProgress.hidden = false;
+    setQualifyProgress(0, domains.length, 0);
+    els.qualifyText.textContent =
+      `Avvio analisi di ${domains.length} domini (~${Math.ceil(domains.length * 1.2 / 60) || 1} min)…`;
+
+    let resp;
+    try {
+      const res = await fetch(`${API_BASE}/api/detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domains }),
+      });
+      resp = await res.json();
+      if (!res.ok) throw new Error(resp && resp.error ? resp.error : `HTTP ${res.status}`);
+    } catch (err) {
+      qualifyFailed(
+        (err && err.message ? err.message : 'server locale non raggiungibile') +
+        '. Avvia l\'app LEAD GEN, oppure scarica domains.txt e lancia il rilevatore.'
+      );
+      return;
+    }
+
+    if (resp.alreadyRunning) {
+      els.qualifyText.textContent =
+        'Un\'analisi è già in corso: mostro il suo progresso. Rilancia la tua lista quando termina.';
+    }
+    pollStatus();
+  });
+
   // Avvio.
   loadCategories();
   loadAreas();
+  detectApi();
 })();

@@ -1,11 +1,12 @@
 #!/bin/bash
 # LEAD GEN (Alchemyx) — launcher macOS della dashboard lead-gen.
 #
-# Avvia un piccolo server HTTP locale (python3) con radice nella cartella
-# alchemyx-leadgen, così la dashboard può caricare ../output/leads.json,
-# poi apre il browser su http://localhost:<porta>/dashboard/
+# Avvia un piccolo server HTTP locale con radice nella cartella
+# alchemyx-leadgen e apre il browser su http://localhost:<porta>/dashboard/
 #
-# Zero dipendenze: usa solo bash, python3 (preinstallato su macOS) e curl.
+# Preferisce Node 18+ (server/server.js: abilita "Cerca e qualifica" in un
+# clic dalla mappa), con fallback su python3 (solo file statici).
+# Zero dipendenze: usa solo bash, node/python3 e curl.
 
 set -u
 
@@ -82,15 +83,23 @@ fi
 mkdir -p "$(dirname "$CONFIG_FILE")" 2>/dev/null && printf '%s\n' "$ROOT_DIR" > "$CONFIG_FILE" 2>/dev/null
 
 # ---------------------------------------------------------------------------
-# 2) Scegli l'interprete Python (python3 su macOS moderno, python in fallback).
+# 2) Scegli il server: Node (preferito: abilita "Cerca e qualifica" one-click)
+#    con fallback su Python (solo file statici, come prima).
 # ---------------------------------------------------------------------------
+NODE_BIN=""
+if command -v node >/dev/null 2>&1 && [ -f "$ROOT_DIR/server/server.js" ]; then
+    NODE_BIN="node"
+fi
+
 PYTHON_BIN=""
 if command -v python3 >/dev/null 2>&1; then
     PYTHON_BIN="python3"
 elif command -v python >/dev/null 2>&1; then
     PYTHON_BIN="python"
-else
-    osascript -e 'display dialog "Python 3 non trovato. Installa gli strumenti da riga di comando di Xcode (xcode-select --install) e riprova." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+fi
+
+if [ -z "$NODE_BIN" ] && [ -z "$PYTHON_BIN" ]; then
+    osascript -e 'display dialog "Né Node.js né Python 3 trovati. Installa Node 18+ (consigliato, abilita la ricerca in un clic) da nodejs.org, oppure gli strumenti da riga di comando di Xcode (xcode-select --install) per Python." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
     exit 1
 fi
 
@@ -104,7 +113,9 @@ FOUND=""
 while [ "$PORT" -lt 8400 ]; do
     if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; then
         # La porta è occupata: è il nostro server di un avvio precedente?
-        if curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
+        # (marker /api/ping = server Node; dashboard = server Python statico)
+        if curl -s --max-time 1 "http://localhost:$PORT/api/ping" | grep -q "alchemyx-leadgen" \
+           || curl -s --max-time 1 "http://localhost:$PORT/dashboard/index.html" | grep -qi "alchemyx"; then
             FOUND="reuse"
             break
         fi
@@ -128,7 +139,14 @@ if [ "$FOUND" = "free" ]; then
     # CWD = radice alchemyx-leadgen: così sono serviti sia /dashboard/
     # che /output/leads.json (la dashboard li carica automaticamente).
     cd "$ROOT_DIR" || exit 1
-    nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+    if [ -n "$NODE_BIN" ]; then
+        # Server Node: file statici + API /api/detect ("Cerca e qualifica"
+        # dalla mappa, dashboard che si aggiorna da sola).
+        PORT="$PORT" nohup "$NODE_BIN" "$ROOT_DIR/server/server.js" >/dev/null 2>&1 &
+    else
+        # Fallback Python: solo file statici (il rilevatore va lanciato a mano).
+        nohup "$PYTHON_BIN" -m http.server "$PORT" >/dev/null 2>&1 &
+    fi
 
     # Aspetta (max ~5 secondi) che il server sia pronto.
     for _ in $(seq 1 50); do

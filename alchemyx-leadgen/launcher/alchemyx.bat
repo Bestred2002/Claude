@@ -6,7 +6,9 @@ rem Doppio click:           avvia il server locale e apre la dashboard.
 rem alchemyx.bat --install: crea il collegamento "LEAD GEN" sul Desktop
 rem                         (con l'icona assets\icon.ico).
 rem
-rem Zero dipendenze: usa solo cmd, PowerShell (incluso in Windows) e Python 3.
+rem Preferisce Node 18+ (server\server.js: abilita "Cerca e qualifica" in un
+rem clic dalla mappa), con fallback su Python 3 (solo file statici).
+rem Zero dipendenze: usa solo cmd, PowerShell (incluso in Windows) e Node/Python.
 rem ==========================================================================
 setlocal
 title LEAD GEN
@@ -24,15 +26,22 @@ if not exist "%ROOT_DIR%\dashboard\index.html" (
     exit /b 1
 )
 
-rem --- Trova Python: prima il launcher "py", poi "python" -------------------
+rem --- Trova il server: prima Node (one-click), poi Python (solo statico) ---
+set "NODECMD="
+if exist "%ROOT_DIR%\server\server.js" (
+    where node >nul 2>nul && set "NODECMD=node"
+)
+
 set "PYCMD="
 where py >nul 2>nul && set "PYCMD=py"
 if not defined PYCMD (
     where python >nul 2>nul && set "PYCMD=python"
 )
-if not defined PYCMD (
-    echo ERRORE: Python 3 non trovato.
-    echo Installalo da https://www.python.org o dal Microsoft Store, poi riprova.
+
+if not defined NODECMD if not defined PYCMD (
+    echo ERRORE: ne' Node.js ne' Python 3 trovati.
+    echo Installa Node 18+ ^(consigliato: abilita la ricerca in un clic^) da https://nodejs.org
+    echo oppure Python 3 da https://www.python.org o dal Microsoft Store, poi riprova.
     pause
     exit /b 1
 )
@@ -44,7 +53,8 @@ set PORT=8347
 netstat -an | findstr /C:":%PORT% " | findstr /C:"LISTENING" >nul 2>nul
 if errorlevel 1 goto :startserver
 rem Porta occupata: e' il nostro server di un avvio precedente?
-powershell -NoProfile -Command "try { $r=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 'http://localhost:%PORT%/dashboard/index.html').Content; if ($r -match 'alchemyx') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
+rem (marker /api/ping = server Node; dashboard = server Python statico)
+powershell -NoProfile -Command "try { $r=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 'http://localhost:%PORT%/api/ping').Content; if ($r -match 'alchemyx-leadgen') { exit 0 } } catch {}; try { $r=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 'http://localhost:%PORT%/dashboard/index.html').Content; if ($r -match 'alchemyx') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
 if not errorlevel 1 goto :openbrowser
 set /a PORT+=1
 if %PORT% GEQ 8400 (
@@ -57,7 +67,13 @@ goto :findport
 :startserver
 rem CWD = radice alchemyx-leadgen: cosi' sono serviti sia /dashboard/
 rem che /output/leads.json (la dashboard li carica automaticamente).
-start "LEAD GEN server" /MIN cmd /c "cd /d "%ROOT_DIR%" && %PYCMD% -m http.server %PORT%"
+if defined NODECMD (
+    rem Server Node: file statici + API ("Cerca e qualifica" dalla mappa).
+    start "LEAD GEN server" /MIN cmd /c "cd /d "%ROOT_DIR%" && set "PORT=%PORT%" && node "%ROOT_DIR%\server\server.js""
+) else (
+    rem Fallback Python: solo file statici (rilevatore da lanciare a mano).
+    start "LEAD GEN server" /MIN cmd /c "cd /d "%ROOT_DIR%" && %PYCMD% -m http.server %PORT%"
+)
 rem Breve attesa perche' il server sia pronto.
 timeout /t 1 /nobreak >nul
 

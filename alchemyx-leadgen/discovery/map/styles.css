@@ -253,6 +253,40 @@ body {
   flex-wrap: wrap;
 }
 
+/* ---- "Cerca e qualifica" (one-click via server locale) ---- */
+.qualify {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.btn-wide { width: 100%; text-align: center; text-decoration: none; display: block; }
+
+.qualify-progress { display: flex; flex-direction: column; gap: 4px; }
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 400ms ease;
+}
+
+.qualify-text { font-size: 0.76rem; color: var(--text-muted); }
+.qualify-text.success { color: var(--accent); font-weight: 600; }
+.qualify-text.error { color: var(--danger); }
+
 .footnote {
   width: 100%;
   margin: 6px 0 0;

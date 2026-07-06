@@ -15,12 +15,34 @@ candidati       + verifica MX          e filtra        pronte per Gmail
 | Modulo | Cosa fa | Come si lancia |
 |---|---|---|
 | [`discovery/`](discovery/) | Costruisce liste di domini candidati da fonti gratuite e lecite (OSM/Nominatim, liste grezze, link manuali a Meta Ad Library / Google Ads Transparency) | `node discovery/src/index.js --raw lista.txt` |
-| `src/` (questo modulo) | Rileva Meta Pixel / Google Ads tag, estrae email, verifica MX → lead qualificati in CSV/JSON | `node src/index.js input/domains.txt` |
-| [`dashboard/`](dashboard/) | Dashboard statica (doppio click su `index.html`) per filtrare i lead ed esportare CSV | apri `dashboard/index.html` |
+| `src/` (questo modulo) | Rileva Meta Pixel / Google Ads tag, estrae email, verifica MX → lead qualificati in CSV/JSON (logica condivisa in `src/pipeline.js`) | `node src/index.js input/domains.txt` |
+| `server/` | Mini server locale (Node, zero deps): serve dashboard e mappa E lancia il rilevatore dal browser (`/api/detect`) | `node server/server.js` (o l'app LEAD GEN) |
+| [`dashboard/`](dashboard/) | Dashboard statica (doppio click su `index.html`) per filtrare i lead ed esportare CSV; sotto il server locale si aggiorna da sola | apri `dashboard/index.html` |
 | [`outreach/`](outreach/) | Genera bozze email personalizzate e conformi GDPR (`.eml` + JSON) con opt-out one-click, pronte per l'invio via Gmail | `node outreach/src/generate.js` |
 
 Flusso tipico: `discovery` produce `discovery/output/domains.txt` → lo passi al
 rilevatore → `output/leads.json` si apre nella `dashboard` e alimenta `outreach`.
+
+## Ricerca in un clic (mappa → dashboard, senza terminale)
+
+Avvia l'**app LEAD GEN** (vedi [`launcher/`](launcher/)) oppure
+`node server/server.js`: parte un piccolo server locale (solo built-in
+Node 18+, `node:http`) che serve dashboard + mappa E espone il rilevatore
+come API. Il flusso diventa:
+
+1. apri la **mappa** (`http://localhost:8347/discovery/map/`), disegna
+   un'area e cerca le attività (Overpass);
+2. premi **"🔎 Cerca e qualifica (ADS + email)"**: i domini trovati vengono
+   analizzati in background (Meta Pixel / Google Ads, email, MX) con una
+   barra di progresso — nessun terminale;
+3. a fine analisi apri la **dashboard**: si aggiorna da sola. I risultati
+   si **accumulano** in `output/leads.json`/`leads.csv` (merge per dominio,
+   la scansione più recente vince).
+
+Il bottone compare solo quando la pagina è servita dal server Node; da
+`file://` (o col vecchio server Python statico) resta il flusso classico
+"Scarica domains.txt → `node src/index.js`", che continua a funzionare
+identico da terminale.
 
 ## Google Sheet (database lead condiviso)
 

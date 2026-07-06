@@ -71,11 +71,35 @@
       </section>
 
       <footer class="panel-footer">
+        <!-- One-click: disponibile solo quando la pagina è servita dal
+             server locale Node (LEAD GEN app) che espone /api/detect. -->
+        <div class="qualify" id="qualify-box" hidden>
+          <button class="btn btn-primary btn-wide" id="btn-qualify" type="button" disabled>
+            🔎 Cerca e qualifica (ADS + email)
+          </button>
+          <div class="qualify-progress" id="qualify-progress" hidden>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" id="qualify-fill"></div>
+            </div>
+            <span class="qualify-text" id="qualify-text" role="status" aria-live="polite"></span>
+          </div>
+          <a class="btn btn-secondary btn-wide" id="btn-open-dashboard" href="../../dashboard/" hidden>
+            📊 Apri dashboard
+          </a>
+        </div>
+
         <button class="btn btn-secondary" id="btn-download" type="button" disabled>⬇️ Scarica domains.txt</button>
         <button class="btn btn-secondary" id="btn-copy" type="button" disabled>📋 Copia domini</button>
-        <p class="footnote">
-          Salva <code>domains.txt</code> in <code>discovery/output/</code> e dai i domini
-          in pasto al detector. Solo le attività con sito web mappato su OSM producono un dominio.
+        <p class="footnote" id="footnote-offline" hidden>
+          💡 Avvia l'app <strong>LEAD GEN</strong> per la ricerca in un clic
+          ("Cerca e qualifica"), oppure scarica la lista e lancia il rilevatore:
+          salva <code>domains.txt</code> in <code>discovery/output/</code> e dai i domini
+          in pasto a <code>node src/index.js</code>.
+        </p>
+        <p class="footnote" id="footnote-online" hidden>
+          Con <strong>Cerca e qualifica</strong> i domini trovati vengono analizzati
+          (ADS + email + MX) e la dashboard si aggiorna da sola. In alternativa
+          puoi sempre scaricare <code>domains.txt</code>.
         </p>
       </footer>
     </aside>

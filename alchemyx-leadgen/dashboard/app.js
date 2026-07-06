@@ -190,8 +190,38 @@ const el = {
   fileInput: document.getElementById("file-input"),
   dropzone: document.getElementById("dropzone"),
   sourceLabel: document.getElementById("data-source-label"),
-  table: document.getElementById("leads-table")
+  table: document.getElementById("leads-table"),
+  refreshBtn: document.getElementById("btn-refresh"),
+  liveBanner: document.getElementById("live-banner"),
+  liveFill: document.getElementById("live-fill"),
+  liveText: document.getElementById("live-text")
 };
+
+/* ------------------------------------------------------------
+   Server locale (LEAD GEN app / node server/server.js).
+   Se la pagina è servita dal server Node, /api/* è disponibile:
+   i lead si caricano da /api/leads e un banner mostra il
+   progresso dei job di rilevamento avviati dalla mappa.
+   Da file:// (o da un server statico) il ping fallisce in
+   silenzio e la dashboard funziona esattamente come prima.
+   ------------------------------------------------------------ */
+const api = {
+  available: false,
+  pollMs: 1500,
+  wasRunning: false
+};
+
+/** Ping del server locale: true solo se risponde il NOSTRO server. */
+async function detectApi() {
+  try {
+    const res = await fetch("../api/ping", { cache: "no-store" });
+    const data = res.ok ? await res.json() : null;
+    api.available = Boolean(data && data.app === "alchemyx-leadgen");
+  } catch (err) {
+    api.available = false; // file:// o server statico: nessun problema
+  }
+  return api.available;
+}
 
 /* ------------------------------------------------------------
    Caricamento dati
@@ -246,6 +276,19 @@ async function tryFetchJson(url) {
  *    mostrare qualcosa)
  */
 async function bootstrapData() {
+  // 0. /api/leads: il server locale Node serve i dati vivi senza cache
+  //    (solo se il ping ha confermato che il server è il nostro).
+  if (api.available) {
+    try {
+      const data = await tryFetchJson("../api/leads");
+      if (Array.isArray(data) && data.length > 0) {
+        setLeads(data, "Dati reali (server locale)");
+        return;
+      }
+    } catch (err) {
+      // ignora e prova la sorgente successiva
+    }
+  }
   try {
     const data = await tryFetchJson("../output/leads.json");
     setLeads(data, "Dati reali (output/leads.json)");
@@ -261,6 +304,79 @@ async function bootstrapData() {
     // ignora e usa il fallback inline
   }
   setLeads(FALLBACK_LEADS, "Dati di esempio (integrati)");
+}
+
+/**
+ * Ricarica i lead dai dati vivi (manuale col bottone "Aggiorna" o
+ * automatica alla fine di un job). Preferisce /api/leads (no-cache),
+ * altrimenti riprova ../output/leads.json.
+ * @param {boolean} silent true = niente alert in caso di errore
+ */
+async function refreshLeads(silent) {
+  const sources = api.available
+    ? [["../api/leads", "Dati reali (server locale)"]]
+    : [["../output/leads.json", "Dati reali (output/leads.json)"]];
+
+  for (const [url, label] of sources) {
+    try {
+      const data = await tryFetchJson(url);
+      if (Array.isArray(data)) {
+        setLeads(data, label + " · aggiornato " +
+          new Date().toLocaleTimeString("it-IT"));
+        return true;
+      }
+    } catch (err) {
+      // prova la sorgente successiva (se c'è)
+    }
+  }
+  if (!silent) {
+    alert("Impossibile ricaricare i lead: nessuna sorgente raggiungibile.\n" +
+      "Da file:// usa il bottone \"Carica leads.json\".");
+  }
+  return false;
+}
+
+/* ------------------------------------------------------------
+   Banner "analisi in corso": polling di /api/status quando la
+   dashboard gira sotto il server locale Node. Alla fine di un
+   job la tabella e i KPI si aggiornano da soli.
+   ------------------------------------------------------------ */
+function renderLiveStatus(status) {
+  const pct = status.total > 0
+    ? Math.round((status.done / status.total) * 100)
+    : 0;
+  el.liveFill.style.width = pct + "%";
+  el.liveText.textContent =
+    "Analisi in corso: " + status.done + "/" + status.total +
+    " domini — " + status.advertisers + " advertiser trovati" +
+    (status.lastDomain ? " · ultimo: " + status.lastDomain : "");
+  el.liveBanner.hidden = false;
+}
+
+function startStatusPolling() {
+  setInterval(async () => {
+    let status;
+    try {
+      const res = await fetch("../api/status", { cache: "no-store" });
+      if (!res.ok) return;
+      status = await res.json();
+    } catch (err) {
+      return; // server momentaneamente non raggiungibile: riprova al giro dopo
+    }
+
+    if (status.running) {
+      api.wasRunning = true;
+      renderLiveStatus(status);
+      return;
+    }
+
+    el.liveBanner.hidden = true;
+    if (api.wasRunning) {
+      // Un job è appena terminato: ricarica automaticamente i dati.
+      api.wasRunning = false;
+      refreshLeads(true);
+    }
+  }, api.pollMs);
 }
 
 /** Legge un File (input o drop) come JSON con FileReader. */
@@ -523,6 +639,9 @@ function initEvents() {
   // Export
   el.exportBtn.addEventListener("click", exportCSV);
 
+  // Aggiorna manuale (ricarica i dati vivi)
+  el.refreshBtn.addEventListener("click", () => refreshLeads(false));
+
   // Input file
   el.fileInput.addEventListener("change", (event) => {
     loadFromFile(event.target.files[0]);
@@ -553,4 +672,7 @@ function initEvents() {
    ------------------------------------------------------------ */
 
 initEvents();
-bootstrapData();
+detectApi().then(() => {
+  bootstrapData();
+  if (api.available) startStatusPolling();
+});
