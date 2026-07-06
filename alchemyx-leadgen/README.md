@@ -1,7 +1,32 @@
-# Alchemyx Lead-Gen — rilevatore di PMI che investono in advertising
+# Alchemyx Lead-Gen — PMI che investono in advertising, a costo zero
 
-Modulo CLI **a costo zero e senza dipendenze** per il sistema di lead generation
-"Alchemyx". Dato un elenco di domini di aziende italiane:
+Sistema di lead generation **a costo zero e senza dipendenze** (solo Node.js 18+)
+per trovare PMI italiane che fanno già pubblicità su Meta/Google e portarle
+all'iscrizione della white list Alchemyx.
+
+## La pipeline completa
+
+```
+discovery/  →  src/ (rilevatore)  →  dashboard/  →  outreach/
+trova domini    chi fa ADS + email     visualizza      bozze email GDPR
+candidati       + verifica MX          e filtra        pronte per Gmail
+```
+
+| Modulo | Cosa fa | Come si lancia |
+|---|---|---|
+| [`discovery/`](discovery/) | Costruisce liste di domini candidati da fonti gratuite e lecite (OSM/Nominatim, liste grezze, link manuali a Meta Ad Library / Google Ads Transparency) | `node discovery/src/index.js --raw lista.txt` |
+| `src/` (questo modulo) | Rileva Meta Pixel / Google Ads tag, estrae email, verifica MX → lead qualificati in CSV/JSON | `node src/index.js input/domains.txt` |
+| [`dashboard/`](dashboard/) | Dashboard statica (doppio click su `index.html`) per filtrare i lead ed esportare CSV | apri `dashboard/index.html` |
+| [`outreach/`](outreach/) | Genera bozze email personalizzate e conformi GDPR (`.eml` + JSON) con opt-out one-click, pronte per l'invio via Gmail | `node outreach/src/generate.js` |
+
+Flusso tipico: `discovery` produce `discovery/output/domains.txt` → lo passi al
+rilevatore → `output/leads.json` si apre nella `dashboard` e alimenta `outreach`.
+
+---
+
+## Il rilevatore (modulo core)
+
+Dato un elenco di domini di aziende italiane:
 
 1. **Rileva i tag pubblicitari** presenti nella homepage: Meta Pixel (Facebook/Instagram
    Ads) e Google Ads (tag di conversione `AW-...`), più i segnali deboli GTM e GA4.
