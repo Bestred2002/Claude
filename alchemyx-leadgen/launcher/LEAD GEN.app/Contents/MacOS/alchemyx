@@ -36,11 +36,50 @@ if [ -z "${ROOT_DIR:-}" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
     done
 fi
 
+# Fallback 2: percorso salvato da un avvio precedente.
+CONFIG_FILE="$HOME/.config/alchemyx/leadgen-path"
+if { [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; } && [ -f "$CONFIG_FILE" ]; then
+    SAVED="$(cat "$CONFIG_FILE" 2>/dev/null)"
+    if [ -n "$SAVED" ] && [ -f "$SAVED/dashboard/index.html" ]; then
+        ROOT_DIR="$SAVED"
+    fi
+fi
+
+# Fallback 3: cerca il progetto nelle posizioni comuni (profondità limitata).
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    for BASE in "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads" "$HOME"; do
+        [ -d "$BASE" ] || continue
+        while IFS= read -r CANDIDATE; do
+            if [ -f "$CANDIDATE/dashboard/index.html" ]; then
+                ROOT_DIR="$CANDIDATE"
+                break
+            fi
+        done < <(find "$BASE" -maxdepth 4 -type d -name "alchemyx-leadgen" 2>/dev/null)
+        [ -n "$ROOT_DIR" ] && [ -f "$ROOT_DIR/dashboard/index.html" ] && break
+    done
+fi
+
+# Fallback 4: chiedi all'utente di indicare la cartella del progetto.
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    CHOSEN="$(osascript -e 'POSIX path of (choose folder with prompt "Non trovo il progetto LEAD GEN.\nSeleziona la cartella del progetto scaricato (quella che contiene alchemyx-leadgen, oppure alchemyx-leadgen stessa).")' 2>/dev/null)"
+    CHOSEN="${CHOSEN%/}"
+    if [ -n "$CHOSEN" ]; then
+        if [ -f "$CHOSEN/dashboard/index.html" ]; then
+            ROOT_DIR="$CHOSEN"
+        elif [ -f "$CHOSEN/alchemyx-leadgen/dashboard/index.html" ]; then
+            ROOT_DIR="$CHOSEN/alchemyx-leadgen"
+        fi
+    fi
+fi
+
 if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
     # Nessuna dashboard trovata: mostra una finestra di errore e termina.
-    osascript -e 'display dialog "Impossibile trovare la dashboard Alchemyx (alchemyx-leadgen/dashboard/index.html).\n\nSposta LEAD GEN.app dentro la cartella alchemyx-leadgen/launcher/ del progetto e riprova." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
+    osascript -e 'display dialog "Impossibile trovare la dashboard Alchemyx (alchemyx-leadgen/dashboard/index.html).\n\nScarica il progetto e riprova, oppure riavvia LEAD GEN e seleziona la cartella del progetto quando richiesto." buttons {"OK"} default button "OK" with icon stop with title "LEAD GEN"' >/dev/null 2>&1
     exit 1
 fi
+
+# Percorso valido: ricordalo per i prossimi avvii (l'app può stare ovunque).
+mkdir -p "$(dirname "$CONFIG_FILE")" 2>/dev/null && printf '%s\n' "$ROOT_DIR" > "$CONFIG_FILE" 2>/dev/null
 
 # ---------------------------------------------------------------------------
 # 2) Scegli l'interprete Python (python3 su macOS moderno, python in fallback).

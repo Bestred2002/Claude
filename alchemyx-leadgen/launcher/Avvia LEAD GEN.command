@@ -23,12 +23,38 @@ if [ -z "${ROOT_DIR:-}" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
     done
 fi
 
+# Fallback 2: percorso salvato da un avvio precedente.
+CONFIG_FILE="$HOME/.config/alchemyx/leadgen-path"
+if { [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; } && [ -f "$CONFIG_FILE" ]; then
+    SAVED="$(cat "$CONFIG_FILE" 2>/dev/null)"
+    if [ -n "$SAVED" ] && [ -f "$SAVED/dashboard/index.html" ]; then
+        ROOT_DIR="$SAVED"
+    fi
+fi
+
+# Fallback 3: cerca il progetto nelle posizioni comuni (profondità limitata).
+if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
+    for BASE in "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads" "$HOME"; do
+        [ -d "$BASE" ] || continue
+        while IFS= read -r CANDIDATE; do
+            if [ -f "$CANDIDATE/dashboard/index.html" ]; then
+                ROOT_DIR="$CANDIDATE"
+                break
+            fi
+        done < <(find "$BASE" -maxdepth 4 -type d -name "alchemyx-leadgen" 2>/dev/null)
+        [ -n "$ROOT_DIR" ] && [ -f "$ROOT_DIR/dashboard/index.html" ] && break
+    done
+fi
+
 if [ -z "$ROOT_DIR" ] || [ ! -f "$ROOT_DIR/dashboard/index.html" ]; then
     echo "ERRORE: dashboard non trovata (alchemyx-leadgen/dashboard/index.html)."
-    echo "Tieni questo file dentro alchemyx-leadgen/launcher/ e riprova."
+    echo "Scarica il progetto oppure tieni questo file dentro alchemyx-leadgen/launcher/."
     read -r -p "Premi Invio per chiudere..."
     exit 1
 fi
+
+# Percorso valido: ricordalo per i prossimi avvii.
+mkdir -p "$(dirname "$CONFIG_FILE")" 2>/dev/null && printf '%s\n' "$ROOT_DIR" > "$CONFIG_FILE" 2>/dev/null
 
 # Interprete Python: python3 (macOS/Linux moderni) o python in fallback.
 if command -v python3 >/dev/null 2>&1; then
